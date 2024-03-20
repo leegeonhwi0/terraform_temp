@@ -145,7 +145,7 @@ resource "aws_lb_listener_rule" "service-tg-rule" {
 
   condition {
     path_pattern {
-      values = ["/path"]
+      values = ["/"]
     }
   }
 }
