@@ -18,7 +18,7 @@ output "def-vpc-id" {
 # Create Public Subnet
 resource "aws_subnet" "pub-sub-a" {
   vpc_id            = aws_vpc.def-vpc.id
-  cidr_block        = cidrsubnet("${var.cidr_block}", 8, 10)
+  cidr_block        = cidrsubnet(var.cidr_block, 8, 10)
   availability_zone = local.az-1
   tags = {
     Name = "${var.naming}-pub-sub-a"
@@ -33,10 +33,10 @@ output "public-sub-a-id" {
 resource "aws_subnet" "pvt-sub-a" {
   count             = var.tier
   vpc_id            = aws_vpc.def-vpc.id
-  cidr_block        = cidrsubnet("${var.cidr_block}", 8, 20 + count.index)
+  cidr_block        = cidrsubnet(var.cidr_block, 8, 20 + count.index)
   availability_zone = local.az-1
   tags = {
-    Name = "${var.naming}-pvt-sub-a-${count.index}"
+    Name = "${var.naming}-pvt-sub-a-${count.index + 1}"
   }
 }
 
@@ -48,11 +48,65 @@ resource "aws_internet_gateway" "def-igw" {
   }
 }
 
-# # Create NAT Gatway
-# resource "aws_nat_gateway" "pvt-ngw-a" {
-#   connectivity_type = "private"
-#   subnet_id         = aws_subnet.pub-sub-a[0].id
-#   tags = {
-#     Name = "${var.naming}-pvt-ngw-a"
-#   }
-# }
+# Create a Public Route table
+resource "aws_route_table" "public-route-table" {
+  vpc_id = aws_vpc.def-vpc.id
+  tags = {
+    Name = "${var.naming}-public-route-table"
+  }
+}
+
+# Create a Private Route table
+resource "aws_route_table" "private-route-table" {
+  vpc_id = aws_vpc.def-vpc.id
+  tags = {
+    Name = "${var.naming}-private-route-table"
+  }
+}
+
+# Public Route Table Association
+resource "aws_route_table_association" "public-route-table-association" {
+  subnet_id      = aws_subnet.pub-sub-a.id
+  route_table_id = aws_route_table.public-route-table.id
+}
+
+# Private Route Table Association
+resource "aws_route_table_association" "private-route-table-association" {
+  count          = 2
+  subnet_id      = aws_subnet.pvt-sub-a[count.index].id
+  route_table_id = aws_route_table.private-route-table.id
+}
+
+# Create a EIP
+resource "aws_eip" "eip" {
+  domain = "vpc"
+  lifecycle {
+    create_before_destroy = true
+  }
+  tags = {
+    Name = "${var.naming}-nat"
+  }
+}
+
+# Create NAT Gatway
+resource "aws_nat_gateway" "nat-gateway" {
+  allocation_id = aws_eip.eip.id
+  subnet_id     = aws_subnet.pub-sub-a.id
+  tags = {
+    Name = "${var.naming}-pvt-ngw-a"
+  }
+}
+
+# Associate Public Subnet with Internet Gateway
+resource "aws_route" "public_route" {
+  route_table_id         = aws_route_table.public-route-table.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.def-igw.id
+}
+
+# Associate Private Subnets with NAT Gateway
+resource "aws_route" "private_route" {
+  route_table_id         = aws_route_table.private-route-table.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat-gateway.id
+}
