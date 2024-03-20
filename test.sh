@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#Bastion Host용 내 IP 설정
-curl ifconfig.me | grep -oE '[^%]*' > myIp.info
-myIp=$(cat myIp.info)
-
 #AWS 가용리전 목록 불러오기
 aws ec2 describe-regions --query "Regions[].{RegionName: RegionName}" --output text > regions.info
 
@@ -44,18 +40,18 @@ fi
 
 #가용영역 설정
 aws ec2 describe-availability-zones --region $region --query "AvailabilityZones[].{ZoneName: ZoneName}" --output text  > azs.info
-read -p "멀티 AZ 설정[1,2]: " multiAzs
+read -p "멀티 AZ 설정[y,n]: " multiAzs
 echo "=====가용영역목록====="
 cat -n "azs.info"
 echo "===================="
-if [ $multiAzs == "2" ];then
+if [ $multiAzs == "y" ];then
 	read -p "첫번째 가용영역 선택: " azs_choice1
 	azs1=$(sed -n "${azs_choice1}p" "azs.info")
 	sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs1\"/g" ./modules/vpc/main.tf
 	read -p "두번째 가용영역 선택: " azs_choice2	
 	azs2=$(sed -n "${azs_choice2}p" "azs.info")
 	sed -i "s/az-2 = \"[^\"]*\"/az-2 = \"$azs2\"/g" ./modules/vpc/main.tf
-elif [ $mulbiAzs == "1" ];then
+elif [ $mulbiAzs == "n" ];then
 	read -p "가용영역 선택: " azs_choice
 	azs=$(sed -n "${azs_choice}p" "azs.info")
 	sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs\"/g" ./modules/vpc/locals.tf
@@ -87,6 +83,17 @@ echo "테스트 환경의 기본 서브넷"
 echo "퍼블릭: 1"
 echo "프라이빗: 2"
 
+#BastionHost 보안그룹 설정
+read -p "BastionHost SSH 보안그룹 IP 자동설정[y/n]: " sgAuto
+if [ $sgAuto == "y" ];then
+	curl ifconfig.me | grep -oE '[^%]*' > myIp.info
+	myIp=$(cat myIp.info)
+elif [ $sgAuto == "n" ];then
+	echo "BastionHost SSH 보안그룹에 등록할 IP 입력"
+	read -p "> " inputIp
+	myIp=$inputIp
+fi
+
 #인스턴스 생성
 cat <<EOF >> main.tf
 
@@ -108,6 +115,9 @@ read -p "번호를 선택해주세요: " iType
 #설정 파일 출력
 echo "==========main.tf=========="
 cat main.tf
+echo "==========================="
+echo "============ec2============"
+cat ./moudles/ec2/main.tf
 echo "==========================="
 
 #내용 확인 선택문
