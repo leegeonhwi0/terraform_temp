@@ -119,7 +119,7 @@ resource "aws_lb" "srv-alb" {
 }
 
 output "srv-alb-name" {
-  value = aws_lb.srv-alb-eip.name
+  value = aws_lb.srv-alb.name
 }
 
 # LB Listener Rule
