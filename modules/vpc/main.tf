@@ -1,6 +1,5 @@
 locals {
   az-1 = "us-east-1a"
-  az-2 = "us-east-1c"
 }
 
 # Create VPC
