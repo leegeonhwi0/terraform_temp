@@ -28,10 +28,14 @@ module "instance" {
   defVpcId     = module.main-vpc.def-vpc-id
   pubSubIds    = module.main-vpc.public-sub-ids
   pvtSubIds    = module.main-vpc.private-sub-ids
-  ansSrvType   = "3"
+  ansSrvType   = "t2.medium"
   ansSrvVolume = 30
-  ansNodType   = "4"
+  ansNodType   = "t2.micro"
   ansNodVolume = 8
   ansNodCount  = 1
   keyName      = "pet-ec2"
+}
+
+output "Service-ALB-Name" {
+  value = module.instance.srv-alb-name
 }
