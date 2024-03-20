@@ -83,7 +83,9 @@ module "main-vpc" {
 EOF
 
 #서브넷 개수 설정
-echo ""
+echo "테스트 환경의 기본 서브넷"
+echo "퍼블릭: 1"
+echo "프라이빗: 2"
 
 #인스턴스 생성
 cat <<EOF >> main.tf
@@ -92,6 +94,7 @@ cat <<EOF >> main.tf
 module "bastion-host" {
   source = "./modules/ec2"
   myIp   = "$myIp/32"
+  defVpcId = module.main-vpc[0].def-vpc-id
 }
 EOF
 
