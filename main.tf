@@ -23,8 +23,8 @@ module "main-vpc" {
 
 # Bastion Host
 module "bastion-host" {
-  source = "./modules/ec2"
-  myIp   = "61.85.118.29/32"
+  source   = "./modules/ec2"
+  myIp     = "61.85.118.29/32"
   defVpcId = module.main-vpc.def-vpc-id
   pubSubId = module.main-vpc.public-sub-a-id
 }
