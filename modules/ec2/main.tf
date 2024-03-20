@@ -122,20 +122,15 @@ output "srv-alb-name" {
   value = aws_lb.srv-alb.name
 }
 
-# LB Listener Rule
-resource "aws_lb_listener_rule" "service-tg-rule" {
-  listener_arn = aws_lb.srv-alb.arn
-  priority     = 100
+# LB Listener
+resource "aws_lb_listener" "srv-alb-http" {
+  load_balancer_arn = aws_lb.srv-alb.arn
+  port              = 80
+  protocol          = "HTTP"
 
-  action {
+  default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.service-tg.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/"]
-    }
   }
 }
 
@@ -197,6 +192,10 @@ resource "aws_instance" "ansible-server" {
   tags = {
     Name = "ansible-server"
   }
+}
+
+output "ans-srv-pvt-ip" {
+  value = aws_instance.ansible-server.private_ip
 }
 
 resource "aws_instance" "ansible-nod" {

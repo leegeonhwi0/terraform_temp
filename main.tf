@@ -16,7 +16,7 @@ provider "aws" {
 # VPC Count
 module "main-vpc" {
   source     = "./modules/vpc"
-  naming     = "pet"
+  naming     = "petclinic"
   cidr_block = "10.0.0.0/16"
   tier       = 2
 }
@@ -24,6 +24,7 @@ module "main-vpc" {
 # Instance
 module "instance" {
   source       = "./modules/ec2"
+  naming       = "petclinic"
   myIp         = "61.85.118.29/32"
   defVpcId     = module.main-vpc.def-vpc-id
   pubSubIds    = module.main-vpc.public-sub-ids
@@ -32,10 +33,14 @@ module "instance" {
   ansSrvVolume = 30
   ansNodType   = "t2.micro"
   ansNodVolume = 8
-  ansNodCount  = 1
-  keyName      = "pet-ec2"
+  ansNodCount  = 2
+  keyName      = "petclinic-ec2"
 }
 
-output "Service-ALB-Name" {
-  value = module.instance.srv-alb-name
+output "bastion-pub-ip" {
+  value = module.instance.bastion-public-ip
+}
+
+output "ans-srv-pvt-ip" {
+  value = module.instance.ans-srv-pvt-ip
 }

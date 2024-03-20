@@ -87,16 +87,29 @@ resource "aws_route_table" "private-route-table" {
   }
 }
 
-# Public Route Table Association
-resource "aws_route_table_association" "public-route-table-association" {
+# Public Route Table Association A
+resource "aws_route_table_association" "public-route-table-association-a" {
   subnet_id      = aws_subnet.pub-sub-a.id
   route_table_id = aws_route_table.public-route-table.id
 }
 
-# Private Route Table Association
-resource "aws_route_table_association" "private-route-table-association" {
-  count          = 2
+# Public Route Table Association C
+resource "aws_route_table_association" "public-route-table-association-c" {
+  subnet_id      = aws_subnet.pub-sub-c.id
+  route_table_id = aws_route_table.public-route-table.id
+}
+
+# Private Route Table Association A
+resource "aws_route_table_association" "private-route-table-association-a" {
+  count          = var.tier
   subnet_id      = aws_subnet.pvt-sub-a[count.index].id
+  route_table_id = aws_route_table.private-route-table.id
+}
+
+# Private Route Table Association C
+resource "aws_route_table_association" "private-route-table-association-c" {
+  count          = var.tier
+  subnet_id      = aws_subnet.pvt-sub-c[count.index].id
   route_table_id = aws_route_table.private-route-table.id
 }
 
