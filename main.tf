@@ -44,3 +44,21 @@ output "bastion-pub-ip" {
 output "ans-srv-pvt-ip" {
   value = module.instance.ans-srv-pvt-ip
 }
+
+output "ansible-nod-ids" {
+  value = module.instance.ansible-nod-ids
+}
+
+resource "null_resource" "save-nod-pvt-ip" {
+  depends_on = [module.instance]
+
+  # 인벤토리 이름 추가
+  provisioner "local-exec" {
+    command = "echo [agent] > ansi-pvt-ips.txt"
+  }
+
+  # ansible-nod-ids 값을 받아서 파일에 추가
+  provisioner "local-exec" {
+    command = "aws ec2 describe-instances --instance-ids ${module.instance.ansible-nod-ids} --query 'Reservations[*].Instances[*].PrivateIpAddress' --output text >> ansi-pvt-ips.txt"
+  }
+}

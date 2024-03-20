@@ -222,6 +222,10 @@ resource "aws_instance" "ansible-nod" {
               EOF
 
   tags = {
-    Name = "ansible-nod-${count.index}"
+    Name = "ansible-nod-${count.index + 1}"
   }
+}
+
+output "ansible-nod-ids" {
+  value = aws_instance.ansible-nod[*].id
 }
