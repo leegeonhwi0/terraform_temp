@@ -180,13 +180,9 @@ resource "aws_instance" "ansible-server" {
 
   user_data = <<-EOF
               #!/bin/bash
-              sudo hostnamectl set-hostname ansible-server
               sudo amazon-linux-extras enable ansible2
-              sudo yum clean all
-              sudo yum update -y
-              sudo pip3 install 'ansible-core>=2.13.9' 
-              sudo pip3 install boto3 botocore
-              sudo ansible-galaxy collection install amazon.aws
+              sudo yum clean metadata
+              sudo yum install -y ansible
               EOF
 
   tags = {
