@@ -17,8 +17,8 @@ variable "defVpcId" {
   type = string
 }
 
-variable "pubSubId" {
-  type = string
+variable "pubSubIds" {
+  type = list(string)
 }
 
 variable "pvtSubIds" {

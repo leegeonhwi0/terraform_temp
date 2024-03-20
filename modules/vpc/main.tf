@@ -1,5 +1,6 @@
 locals {
   az-1 = "us-east-1a"
+  az-2 = "us-east-1c"
 }
 
 # Create VPC
@@ -17,7 +18,7 @@ output "def-vpc-id" {
 # Create Public Subnet
 resource "aws_subnet" "pub-sub-a" {
   vpc_id            = aws_vpc.def-vpc.id
-  cidr_block        = cidrsubnet(var.cidr_block, 8, 10)
+  cidr_block        = cidrsubnet(var.cidr_block, 8, 1)
   availability_zone = local.az-1
   tags = {
     Name = "${var.naming}-pub-sub-a"
@@ -28,11 +29,24 @@ output "public-sub-id" {
   value = aws_subnet.pub-sub-a.id
 }
 
+resource "aws_subnet" "pub-sub-c" {
+  vpc_id            = aws_vpc.def-vpc.id
+  cidr_block        = cidrsubnet(var.cidr_block, 8, 2)
+  availability_zone = local.az-2
+  tags = {
+    Name = "${var.naming}-pub-sub-c"
+  }
+}
+
+output "public-sub-ids" {
+  value = [aws_subnet.pub-sub-a.id, aws_subnet.pub-sub-c.id]
+}
+
 # Create Private Subnet
 resource "aws_subnet" "pvt-sub-a" {
   count             = var.tier
   vpc_id            = aws_vpc.def-vpc.id
-  cidr_block        = cidrsubnet(var.cidr_block, 8, 20 + count.index)
+  cidr_block        = cidrsubnet(var.cidr_block, 8, 10 + count.index)
   availability_zone = local.az-1
   tags = {
     Name = "${var.naming}-pvt-sub-a-${count.index + 1}"
@@ -40,7 +54,7 @@ resource "aws_subnet" "pvt-sub-a" {
 }
 
 output "private-sub-ids" {
-  value = { for idx, subnet in aws_subnet.pvt-sub-a : idx => subnet.id }
+  value = aws_subnet.pvt-sub-a[*].id
 }
 
 # Create Internet Gatway

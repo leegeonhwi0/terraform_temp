@@ -26,7 +26,7 @@ module "instance" {
   source       = "./modules/ec2"
   myIp         = "61.85.118.29/32"
   defVpcId     = module.main-vpc.def-vpc-id
-  pubSubId     = module.main-vpc.public-sub-id
+  pubSubIds    = module.main-vpc.public-sub-ids
   pvtSubIds    = module.main-vpc.private-sub-ids
   ansSrvType   = "t2.medium"
   ansSrvVolume = 20

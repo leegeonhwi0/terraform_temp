@@ -94,7 +94,7 @@ resource "aws_security_group" "ans-nod-sg" {
 # TargetGroup
 resource "aws_lb_target_group" "service-tg" {
   name     = "${var.naming}-service-tg"
-  port     = 80
+  port     = 8000
   protocol = "HTTP"
   vpc_id   = var.defVpcId
 
@@ -111,7 +111,7 @@ resource "aws_lb_target_group" "service-tg" {
 
 # Elastic IP
 resource "aws_eip" "srv-alb-eip" {
-  vpc = true
+  domain = "vpc"
 }
 
 # LoadBalancer
@@ -120,7 +120,7 @@ resource "aws_lb" "srv-alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb-sg.id]
-  subnets            = [var.pubSubId]
+  subnets            = var.pubSubIds
 }
 
 # Associate EIP with Load Balancer
@@ -154,7 +154,7 @@ resource "aws_lb_listener_rule" "service-tg-rule" {
 resource "aws_instance" "bastion-host" {
   ami             = "ami-02d7fd1c2af6eead0"
   instance_type   = "t2.micro"
-  subnet_id       = var.pubSubId
+  subnet_id       = var.pubSubIds[0]
   key_name        = "my-ec2-01"
   security_groups = [aws_security_group.bastion-sg.id]
 
@@ -166,7 +166,7 @@ resource "aws_instance" "bastion-host" {
 }
 
 output "bastion-public-ip" {
-  value = aws_instance.bastion-ec2.public_ip
+  value = aws_instance.bastion-host.public_ip
 }
 
 resource "aws_instance" "ansible-server" {

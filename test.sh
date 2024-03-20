@@ -43,9 +43,12 @@ aws ec2 describe-availability-zones --region $region --query "AvailabilityZones[
 echo "=====가용영역목록====="
 cat -n "azs.info"
 echo "===================="
-read -p "가용영역 선택: " azs_choice
-azs=$(sed -n "${azs_choice}p" "azs.info")
-sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs\"/g" ./modules/vpc/main.tf
+read -p "첫번째 가용영역 선택: " azs_choice1
+read -p "두번째 가용영역 선택: " azs_choice2
+azs1=$(sed -n "${azs_choice1}p" "azs.info")
+sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs1\"/g" ./modules/vpc/main.tf
+azs2=$(sed -n "${azs_choice2}p" "azs.info")
+sed -i "s/az-2 = \"[^\"]*\"/az-1 = \"$azs2\"/g" ./modules/vpc/main.tf
 
 #프로젝트명 입력
 read -p "프로젝트명 입력: " prjt
