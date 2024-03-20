@@ -44,18 +44,18 @@ fi
 
 #가용영역 설정
 aws ec2 describe-availability-zones --region $region --query "AvailabilityZones[].{ZoneName: ZoneName}" --output text  > azs.info
-read -p "멀티 AZ 설정[y/n]: " multiAzs
+read -p "멀티 AZ 설정[1,2]: " multiAzs
 echo "=====가용영역목록====="
 cat -n "azs.info"
 echo "===================="
-if [ $multiAzs == "y" ];then
+if [ $multiAzs == "2" ];then
 	read -p "첫번째 가용영역 선택: " azs_choice1
 	azs1=$(sed -n "${azs_choice1}p" "azs.info")
 	sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs1\"/g" ./modules/vpc/main.tf
 	read -p "두번째 가용영역 선택: " azs_choice2	
 	azs2=$(sed -n "${azs_choice2}p" "azs.info")
 	sed -i "s/az-2 = \"[^\"]*\"/az-2 = \"$azs2\"/g" ./modules/vpc/main.tf
-elif [ $mulbiAzs == "n" ];then
+elif [ $mulbiAzs == "1" ];then
 	read -p "가용영역 선택: " azs_choice
 	azs=$(sed -n "${azs_choice}p" "azs.info")
 	sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs\"/g" ./modules/vpc/locals.tf
@@ -63,9 +63,6 @@ fi
 
 #프로젝트명 입력
 read -p "프로젝트명 입력: " prjt
-
-#VPC 수량 설정
-read -p "생성할 VPC수 입력: " vpcCount
 
 #VPC 대역 설정
 vpcCidr="10.0.0.0/16"
@@ -79,12 +76,14 @@ cat <<EOF >> main.tf
 
 # VPC Count
 module "main-vpc" {
-  count      = $vpcCount
   source     = "./modules/vpc"
   naming     = "$prjt"
   cidr_block = "$vpcCidr"
 }
 EOF
+
+#서브넷 개수 설정
+echo ""
 
 #인스턴스 생성
 cat <<EOF >> main.tf
