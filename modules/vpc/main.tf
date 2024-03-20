@@ -18,7 +18,7 @@ output "def-vpc-id" {
 # Create Public Subnet
 resource "aws_subnet" "pub-sub-a" {
   vpc_id            = aws_vpc.def-vpc.id
-  cidr_block        = "10.10.11.0/24"
+  cidr_block        = cidrsubnet("${var.cidr_block}", 8, 10)
   availability_zone = local.az-1
   tags = {
     Name = "${var.naming}-pub-sub-a"
@@ -31,11 +31,12 @@ output "public-sub-a-id" {
 
 # Create Private Subnet
 resource "aws_subnet" "pvt-sub-a" {
+  count             = var.tier
   vpc_id            = aws_vpc.def-vpc.id
-  cidr_block        = "10.10.13.0/24"
+  cidr_block        = cidrsubnet("${var.cidr_block}", 8, 20 + count.index)
   availability_zone = local.az-1
   tags = {
-    Name = "${var.naming}-pvt-sub-a"
+    Name = "${var.naming}-pvt-sub-a-${count.index}"
   }
 }
 

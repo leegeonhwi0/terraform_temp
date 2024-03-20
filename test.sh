@@ -40,7 +40,7 @@ fi
 
 #가용영역 설정
 aws ec2 describe-availability-zones --region $region --query "AvailabilityZones[].{ZoneName: ZoneName}" --output text  > azs.info
-read -p "멀티 AZ 설정[y,n]: " multiAzs
+read -p "멀티 AZ 설정[y/n]: " multiAzs
 echo "=====가용영역목록====="
 cat -n "azs.info"
 echo "===================="
@@ -68,6 +68,9 @@ if [ -n "$vpcCidrInput" ];then
 	vpcCidr="$vpcCidrInput"
 fi
 
+#서브넷 개수 설정
+read -p "아키텍쳐 티어 설정[1/2/3]: " tier
+
 cat <<EOF >> main.tf
 
 # VPC Count
@@ -75,13 +78,9 @@ module "main-vpc" {
   source     = "./modules/vpc"
   naming     = "$prjt"
   cidr_block = "$vpcCidr"
+  tier       = $tier
 }
 EOF
-
-#서브넷 개수 설정
-echo "테스트 환경의 기본 서브넷"
-echo "퍼블릭: 1"
-echo "프라이빗: 2"
 
 #BastionHost 보안그룹 설정
 read -p "BastionHost SSH 보안그룹 IP 자동설정[y/n]: " sgAuto
