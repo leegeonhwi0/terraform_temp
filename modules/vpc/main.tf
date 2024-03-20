@@ -111,14 +111,14 @@ resource "aws_eip" "eip" {
   }
 }
 
-# Create NAT Gatway
-resource "aws_nat_gateway" "nat-gateway" {
-  allocation_id = aws_eip.eip.id
-  subnet_id     = aws_subnet.pub-sub-a.id
-  tags = {
-    Name = "${var.naming}-pvt-ngw-a"
-  }
-}
+# # Create NAT Gatway
+# resource "aws_nat_gateway" "nat-gateway" {
+#   allocation_id = aws_eip.eip.id
+#   subnet_id     = aws_subnet.pub-sub-a.id
+#   tags = {
+#     Name = "${var.naming}-pvt-ngw-a"
+#   }
+# }
 
 # Associate Public Subnet with Internet Gateway
 resource "aws_route" "public_route" {
@@ -127,9 +127,9 @@ resource "aws_route" "public_route" {
   gateway_id             = aws_internet_gateway.def-igw.id
 }
 
-# Associate Private Subnets with NAT Gateway
-resource "aws_route" "private_route" {
-  route_table_id         = aws_route_table.private-route-table.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat-gateway.id
-}
+# # Associate Private Subnets with NAT Gateway
+# resource "aws_route" "private_route" {
+#   route_table_id         = aws_route_table.private-route-table.id
+#   destination_cidr_block = "0.0.0.0/0"
+#   nat_gateway_id         = aws_nat_gateway.nat-gateway.id
+# }

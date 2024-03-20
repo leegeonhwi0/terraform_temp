@@ -126,7 +126,7 @@ resource "aws_lb" "srv-alb" {
 # Associate EIP with Load Balancer
 resource "aws_eip_association" "srv-alb-eip-assoc" {
   allocation_id = aws_eip.srv-alb-eip.id
-  instance_id   = aws_lb.srv-alb.id
+  instance_id   = aws_lb.srv-alb.arn
 }
 
 output "srv-alb-eip-ip" {
@@ -147,6 +147,19 @@ resource "aws_lb_listener_rule" "service-tg-rule" {
     path_pattern {
       values = ["/"]
     }
+  }
+}
+
+# aws_key_pair resource 설정
+resource "aws_key_pair" "terraform-key-pair" {
+  # 등록할 key pair의 name
+  key_name = var.keyName
+
+  # public_key = "{.pub 파일 내용}"
+  public_key = file("./.ssh/${var.keyName}.pub")
+
+  tags = {
+    description = "terraform key pair import"
   }
 }
 
@@ -198,7 +211,7 @@ resource "aws_instance" "ansible-server" {
 }
 
 resource "aws_instance" "ansible-nod" {
-  count         = var.ansCount
+  count         = var.ansNodCount
   ami           = "ami-02d7fd1c2af6eead0"
   instance_type = var.ansNodType
   subnet_id     = var.pvtSubIds[0]

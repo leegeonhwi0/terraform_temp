@@ -29,10 +29,6 @@ variable "ansSrvType" {
   type = string
 }
 
-variable "keyName" {
-  type = string
-}
-
 variable "ansSrvVolume" {
   type = number
 }
@@ -45,7 +41,10 @@ variable "ansNodVolume" {
   type = number
 }
 
-variable "ansCount" {
+variable "ansNodCount" {
   type = number
 }
-  
+
+variable "keyName" {
+  type = string
+}

@@ -17,8 +17,8 @@ provider "aws" {
 module "main-vpc" {
   source     = "./modules/vpc"
   naming     = "pet"
-  cidr_block = "172.0.0.0/16"
-  tier       = 3
+  cidr_block = "10.0.0.0/16"
+  tier       = 2
 }
 
 # Instance
@@ -28,15 +28,10 @@ module "instance" {
   defVpcId     = module.main-vpc.def-vpc-id
   pubSubIds    = module.main-vpc.public-sub-ids
   pvtSubIds    = module.main-vpc.private-sub-ids
-  ansSrvType   = "t2.medium"
-  ansSrvVolume = 20
-  ansNodType   = "t2.micro"
+  ansSrvType   = "3"
+  ansSrvVolume = 30
+  ansNodType   = "4"
   ansNodVolume = 8
-  ansCount     = 1
+  ansNodCount  = 1
   keyName      = "pet-ec2"
-}
-
-
-output "service-alb-ip" {
-  value = module.instance.srv-alb-eip-ip
 }

@@ -48,7 +48,7 @@ read -p "두번째 가용영역 선택: " azs_choice2
 azs1=$(sed -n "${azs_choice1}p" "azs.info")
 sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs1\"/g" ./modules/vpc/main.tf
 azs2=$(sed -n "${azs_choice2}p" "azs.info")
-sed -i "s/az-2 = \"[^\"]*\"/az-1 = \"$azs2\"/g" ./modules/vpc/main.tf
+sed -i "s/az-2 = \"[^\"]*\"/az-2 = \"$azs2\"/g" ./modules/vpc/main.tf
 
 #프로젝트명 입력
 read -p "프로젝트명 입력: " prjt
@@ -99,14 +99,16 @@ echo "앤서블 서버 사양 선택"
 echo "===================="
 cat -n "instance.type"
 echo "===================="
-read -p "번호를 선택해주세요: " srvType
+read -p "번호를 선택해주세요: " srvTypeSelect
+srvType=$(sed -n "${srvTypeSelect}p" "instance.type")
 read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " srvVolume
 #Ansible-Node
 echo "앤서블 노드 사양 선택"
 echo "===================="
 cat -n "instance.type"
 echo "===================="
-read -p "번호를 선택해주세요: " nodType
+read -p "번호를 선택해주세요: " nodTypeSelect
+nodType=$(sed -n "${nodTypeSelect}p" "instance.type")
 read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " nodVolume
 read -p "앤서블 노드 수량: " nodCount
 
@@ -118,7 +120,7 @@ module "instance" {
   source     = "./modules/ec2"
   myIp       = "61.85.118.29/32"
   defVpcId   = module.main-vpc.def-vpc-id
-  pubSubId   = module.main-vpc.public-sub-id
+  pubSubIds   = module.main-vpc.public-sub-ids
   pvtSubIds  = module.main-vpc.private-sub-ids
   ansSrvType = "$srvType"
   ansSrvVolume = $srvVolume
