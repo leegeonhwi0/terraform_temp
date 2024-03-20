@@ -24,7 +24,7 @@ resource "aws_subnet" "pub-sub-a" {
   }
 }
 
-output "public-sub-a-id" {
+output "public-sub-id" {
   value = aws_subnet.pub-sub-a.id
 }
 
@@ -37,6 +37,10 @@ resource "aws_subnet" "pvt-sub-a" {
   tags = {
     Name = "${var.naming}-pvt-sub-a-${count.index + 1}"
   }
+}
+
+output "private-sub-ids" {
+  value = { for idx, subnet in aws_subnet.pvt-sub-a : idx => subnet.id }
 }
 
 # Create Internet Gatway

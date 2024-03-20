@@ -20,3 +20,15 @@ variable "defVpcId" {
 variable "pubSubId" {
   type = string
 }
+
+variable "pvtSubIds" {
+  type = list(string)
+}
+
+variable "ansSrvType" {
+  type = string
+}
+
+variable "ansSrvVolume" {
+  type = number
+}

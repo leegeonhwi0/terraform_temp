@@ -84,23 +84,29 @@ elif [ $sgAuto == "n" ];then
 fi
 
 #인스턴스 생성
-cat <<EOF >> main.tf
-
-# Bastion Host
-module "bastion-host" {
-  source = "./modules/ec2"
-  myIp   = "$myIp/32"
-  defVpcId = module.main-vpc.def-vpc-id
-  pubSubId = module.main-vpc.public-sub-a-id
-}
-EOF
-
+#BastionHost
+#Ansible-Server
 aws ec2 describe-instance-type-offerings --location-type "availability-zone" --region us-east-1 --query "InstanceTypeOfferings[?starts_with(InstanceType, 't2')].[InstanceType]" --output text | sort | uniq > instance.type
-echo "앤서블 서버 인스턴스 사양 선택"
+echo "앤서블 서버 사양 선택"
 echo "===================="
 cat -n "instance.type"
 echo "===================="
 read -p "번호를 선택해주세요: " iType
+read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " iVolume
+
+cat <<EOF >> main.tf
+
+# Instance
+module "instance" {
+  source     = "./modules/ec2"
+  myIp       = "61.85.118.29/32"
+  defVpcId   = module.main-vpc.def-vpc-id
+  pubSubId   = module.main-vpc.public-sub-id
+  pvtSubIds  = module.main-vpc.private-sub-ids
+  ansSrvType = "$iType"
+  ansSrvVolume = $iVolume
+}
+EOF
 
 #설정 파일 출력
 echo "==========main.tf=========="
