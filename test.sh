@@ -45,7 +45,7 @@ cat -n "azs.info"
 echo "===================="
 read -p "가용영역 선택: " azs_choice
 azs=$(sed -n "${azs_choice}p" "azs.info")
-sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs\"/g" ./modules/vpc/locals.tf
+sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs\"/g" ./modules/vpc/main.tf
 
 #프로젝트명 입력
 read -p "프로젝트명 입력: " prjt
