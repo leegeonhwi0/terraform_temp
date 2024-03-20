@@ -30,6 +30,10 @@ module "instance" {
   pvtSubIds    = module.main-vpc.private-sub-ids
   ansSrvType   = "t2.medium"
   ansSrvVolume = 20
+  ansNodType   = "t2.micro"
+  ansNodVolume = 8
+  ansCount     = 1
+  keyName      = "pet-ec2"
 }
 
 

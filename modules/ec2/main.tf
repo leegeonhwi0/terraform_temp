@@ -155,7 +155,7 @@ resource "aws_instance" "bastion-host" {
   ami             = "ami-02d7fd1c2af6eead0"
   instance_type   = "t2.micro"
   subnet_id       = var.pubSubIds[0]
-  key_name        = "my-ec2-01"
+  key_name        = var.keyName
   security_groups = [aws_security_group.bastion-sg.id]
 
   associate_public_ip_address = true
@@ -173,7 +173,7 @@ resource "aws_instance" "ansible-server" {
   ami           = "ami-02d7fd1c2af6eead0"
   instance_type = var.ansSrvType
   subnet_id     = var.pvtSubIds[0]
-  key_name      = "my-ec2-01"
+  key_name      = var.keyName
 
   vpc_security_group_ids = [aws_security_group.ans-srv-sg.id]
 
@@ -198,13 +198,17 @@ resource "aws_instance" "ansible-server" {
 }
 
 resource "aws_instance" "ansible-nod" {
-  count         = 2
+  count         = var.ansCount
   ami           = "ami-02d7fd1c2af6eead0"
-  instance_type = var.ansSrvType
+  instance_type = var.ansNodType
   subnet_id     = var.pvtSubIds[0]
-  key_name      = "my-ec2-01"
+  key_name      = var.keyName
 
   vpc_security_group_ids = [aws_security_group.ans-nod-sg.id]
+
+  root_block_device {
+    volume_size = var.ansNodVolume
+  }
 
   provisioner "local-exec" {
     command = "aws elbv2 register-targets --target-group-arn ${aws_lb_target_group.service-tg.arn} --targets Id=${self.id}"

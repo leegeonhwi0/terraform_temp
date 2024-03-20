@@ -25,10 +25,6 @@ resource "aws_subnet" "pub-sub-a" {
   }
 }
 
-output "public-sub-id" {
-  value = aws_subnet.pub-sub-a.id
-}
-
 resource "aws_subnet" "pub-sub-c" {
   vpc_id            = aws_vpc.def-vpc.id
   cidr_block        = cidrsubnet(var.cidr_block, 8, 2)
@@ -50,6 +46,16 @@ resource "aws_subnet" "pvt-sub-a" {
   availability_zone = local.az-1
   tags = {
     Name = "${var.naming}-pvt-sub-a-${count.index + 1}"
+  }
+}
+
+resource "aws_subnet" "pvt-sub-c" {
+  count             = var.tier
+  vpc_id            = aws_vpc.def-vpc.id
+  cidr_block        = cidrsubnet(var.cidr_block, 8, 20 + count.index)
+  availability_zone = local.az-2
+  tags = {
+    Name = "${var.naming}-pvt-sub-c-${count.index + 1}"
   }
 }
 

@@ -86,6 +86,11 @@ elif [ $sgAuto == "n" ];then
 	myIp=$inputIp
 fi
 
+keyName="$prjt-ec2"
+#키페어 생성
+mkdir ./.ssh
+ssh-keygen -t rsa -b 4096 -C "" -f "./.ssh/$keyName" -N ""
+
 #인스턴스 생성
 #BastionHost
 #Ansible-Server
@@ -94,8 +99,17 @@ echo "앤서블 서버 사양 선택"
 echo "===================="
 cat -n "instance.type"
 echo "===================="
-read -p "번호를 선택해주세요: " iType
-read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " iVolume
+read -p "번호를 선택해주세요: " srvType
+read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " srvVolume
+#Ansible-Node
+echo "앤서블 노드 사양 선택"
+echo "===================="
+cat -n "instance.type"
+echo "===================="
+read -p "번호를 선택해주세요: " nodType
+read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " nodVolume
+read -p "앤서블 노드 수량: " nodCount
+
 
 cat <<EOF >> main.tf
 
@@ -106,8 +120,12 @@ module "instance" {
   defVpcId   = module.main-vpc.def-vpc-id
   pubSubId   = module.main-vpc.public-sub-id
   pvtSubIds  = module.main-vpc.private-sub-ids
-  ansSrvType = "$iType"
-  ansSrvVolume = $iVolume
+  ansSrvType = "$srvType"
+  ansSrvVolume = $srvVolume
+  ansNodType = "$nodType"
+  ansNodVolume = $nodVolume
+  ansNodCount = $nodCount
+  keyName = "$keyName"
 }
 EOF
 
