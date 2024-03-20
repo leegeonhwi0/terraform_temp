@@ -31,3 +31,8 @@ module "instance" {
   ansSrvType   = "t2.medium"
   ansSrvVolume = 20
 }
+
+
+output "service-alb-ip" {
+  value = module.instance.srv-alb-eip-ip
+}

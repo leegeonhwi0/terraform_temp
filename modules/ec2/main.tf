@@ -109,8 +109,13 @@ resource "aws_lb_target_group" "service-tg" {
   }
 }
 
+# Elastic IP
+resource "aws_eip" "srv-alb-eip" {
+  vpc = true
+}
+
 # LoadBalancer
-resource "aws_lb" "service-alb" {
+resource "aws_lb" "srv-alb" {
   name               = "${var.naming}-alb"
   internal           = false
   load_balancer_type = "application"
@@ -118,9 +123,19 @@ resource "aws_lb" "service-alb" {
   subnets            = [var.pubSubId]
 }
 
+# Associate EIP with Load Balancer
+resource "aws_eip_association" "srv-alb-eip-assoc" {
+  allocation_id = aws_eip.srv-alb-eip.id
+  instance_id   = aws_lb.srv-alb.id
+}
+
+output "srv-alb-eip-ip" {
+  value = aws_eip.srv-alb-eip.public_ip
+}
+
 # LB Listener Rule
 resource "aws_lb_listener_rule" "service-tg-rule" {
-  listener_arn = aws_lb.service-alb.arn
+  listener_arn = aws_lb.srv-alb.arn
   priority     = 100
 
   action {
