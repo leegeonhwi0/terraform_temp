@@ -94,7 +94,7 @@ resource "aws_security_group" "ans-nod-sg" {
 # TargetGroup
 resource "aws_lb_target_group" "service-tg" {
   name     = "${var.naming}-service-tg"
-  port     = 8000
+  port     = 8888
   protocol = "HTTP"
   vpc_id   = var.defVpcId
 
@@ -213,12 +213,7 @@ resource "aws_instance" "ansible-nod" {
 
   user_data = <<-EOF
               #!/bin/bash
-              sudo hostnamectl set-hostname ansible-agent
-              sudo amazon-linux-extras enable ansible2
-              sudo yum clean all
-              sudo yum update -y
-              sudo pip3 install 'ansible-core>=2.13.9' 
-              sudo pip3 install boto3 botocore
+              sudo hostnamectl set-hostname ansible-agent0${count.index + 1}
               EOF
 
   tags = {
