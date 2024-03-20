@@ -51,7 +51,7 @@ if [ $multiAzs == "y" ];then
 	read -p "두번째 가용영역 선택: " azs_choice2	
 	azs2=$(sed -n "${azs_choice2}p" "azs.info")
 	sed -i "s/az-2 = \"[^\"]*\"/az-2 = \"$azs2\"/g" ./modules/vpc/main.tf
-elif [ $mulbiAzs == "n" ];then
+elif [ $multiAzs == "n" ];then
 	read -p "가용영역 선택: " azs_choice
 	azs=$(sed -n "${azs_choice}p" "azs.info")
 	sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs\"/g" ./modules/vpc/locals.tf
@@ -101,7 +101,8 @@ cat <<EOF >> main.tf
 module "bastion-host" {
   source = "./modules/ec2"
   myIp   = "$myIp/32"
-  defVpcId = module.main-vpc[0].def-vpc-id
+  defVpcId = module.main-vpc.def-vpc-id
+  pubSubId = module.main-vpc.public-sub-a-id
 }
 EOF
 
@@ -117,7 +118,7 @@ echo "==========main.tf=========="
 cat main.tf
 echo "==========================="
 echo "============ec2============"
-cat ./moudles/ec2/main.tf
+cat ./modules/ec2/main.tf
 echo "==========================="
 
 #내용 확인 선택문

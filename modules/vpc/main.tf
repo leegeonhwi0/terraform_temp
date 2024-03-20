@@ -25,6 +25,10 @@ resource "aws_subnet" "pub-sub-a" {
   }
 }
 
+output "public-sub-a-id" {
+  value = aws_subnet.pub-sub-a.id
+}
+
 # Create Private Subnet
 resource "aws_subnet" "pvt-sub-a" {
   vpc_id            = aws_vpc.def-vpc.id

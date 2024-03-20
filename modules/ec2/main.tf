@@ -1,6 +1,6 @@
 resource "aws_security_group" "bastion-sg" {
   name   = "${var.naming}-bastion-sg"
-  vpc_id = ""
+  vpc_id = var.defVpcId
 
   ingress {
     from_port   = 22
@@ -22,11 +22,13 @@ resource "aws_security_group" "bastion-sg" {
 }
 
 resource "aws_instance" "bastion-ec2" {
-  ami             = "ami-07d9b9ddc6cd8dd30"
+  ami             = "ami-02d7fd1c2af6eead0"
   instance_type   = "t2.micro"
+  subnet_id       = var.pubSubId
   key_name        = "my-ec2-01"
   security_groups = [aws_security_group.bastion-sg.id]
 
+  associate_public_ip_address = true
   tags = {
     Name = "${var.naming}-bastion-ec2"
   }

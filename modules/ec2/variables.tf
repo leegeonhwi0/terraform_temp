@@ -16,3 +16,7 @@ variable "myIp" {
 variable "defVpcId" {
   type = string
 }
+
+variable "pubSubId" {
+  type = string
+}
