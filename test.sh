@@ -203,7 +203,7 @@ cat <<EOF >> main.tf
 module "instance" {
   source     = "./modules/ec2"
   naming     = "$prjt"
-  myIp       = "$myIp"
+  myIp       = "$myIp/32"
   defVpcId   = module.main-vpc.def-vpc-id
   pubSubIds   = module.main-vpc.public-sub-ids
   pvtSubIds  = module.main-vpc.private-sub-ids

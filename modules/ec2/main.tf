@@ -123,6 +123,24 @@ resource "aws_lb_target_group" "service-tg" {
   }
 }
 
+resource "aws_lb_target_group" "jenkins-tg" {
+  name     = "${var.naming}-jenkins-tg"
+  port     = 8080
+  protocol = "HTTP"
+
+  vpc_id = var.defVpcId
+
+  health_check {
+    path                = "/"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
 # LoadBalancer
 resource "aws_lb" "srv-alb" {
   name               = "${var.naming}-alb"
@@ -145,6 +163,17 @@ resource "aws_lb_listener" "srv-alb-http" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.service-tg.arn
+  }
+}
+
+resource "aws_lb_listener" "jenkins-alb-http" {
+  load_balancer_arn = aws_lb.srv-alb.arn
+  port              = 8080
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.jenkins-tg.arn
   }
 }
 
