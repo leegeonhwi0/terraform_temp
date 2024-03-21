@@ -52,12 +52,3 @@ output "ans-srv-pvt-ip" {
 output "ansible-nod-ids" {
   value = module.instance.ansible-nod-ids
 }
-
-# Save File
-resource "null_resource" "save-output" {
-  provisioner "local-exec" {
-    command = "tf output -json > output.json"
-  }
-
-  depends_on = [module.instance]
-}
