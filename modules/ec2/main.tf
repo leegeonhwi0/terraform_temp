@@ -56,6 +56,13 @@ resource "aws_security_group" "ans-srv-sg" {
     security_groups = [aws_security_group.bastion-sg.id]
   }
 
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = [var.myIp]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -228,6 +235,6 @@ resource "aws_instance" "ansible-nod" {
   }
 }
 
-output "ansible-nod-ips" {
+output "ansible-nod-ids" {
   value = aws_instance.ansible-nod[*].private_ip
 }
