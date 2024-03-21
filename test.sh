@@ -86,8 +86,10 @@ elif [ $sgAuto == "n" ];then
 	myIp=$inputIp
 fi
 
-keyName="$prjt-ec2"
+
 #키페어 생성
+echo "==========키페어 생성=========="
+keyName="$prjt-ec2"
 mkdir ./.ssh
 ssh-keygen -t rsa -b 4096 -C "" -f "./.ssh/$keyName" -N ""
 
