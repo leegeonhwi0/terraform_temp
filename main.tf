@@ -35,7 +35,7 @@ module "instance" {
   ansSrvVolume = 30
   ansNodAmi    = "ami-0d6857b844e855670"
   ansNodType   = "t2.micro"
-  ansNodVolume = 8
+  ansNodVolume = 10
   ansNodCount  = 1
   keyName      = "pet-ec2"
 }
@@ -48,6 +48,6 @@ output "ans-srv-pvt-ip" {
   value = module.instance.ans-srv-pvt-ip
 }
 
-output "ansible-nod-ids" {
-  value = module.instance.ansible-nod-ids
+output "ansible-nod-ips" {
+  value = module.instance.ansible-nod-ips
 }

@@ -129,7 +129,7 @@ cat -n "instance.info"
 echo "===================="
 read -p "번호를 선택해주세요: " srvTypeSelect
 srvType=$(sed -n "${srvTypeSelect}p" "instance.info")
-read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " srvVolume
+read -p "앤서블 서버 볼륨 크기[최소:20,최대:30]: " srvVolume
 
 #Ansible-Node
 echo "앤서블 노드 AMI 선택"
@@ -151,7 +151,7 @@ cat -n "instance.info"
 echo "===================="
 read -p "번호를 선택해주세요: " nodTypeSelect
 nodType=$(sed -n "${nodTypeSelect}p" "instance.info")
-read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " nodVolume
+read -p "앤서블 노드 볼륨 크기[최소:10,최대:30]: " nodVolume
 read -p "앤서블 노드 수량: " nodCount
 
 bAmi=$(sed -n "1p" "ami.info")
@@ -179,6 +179,7 @@ module "instance" {
   keyName = "$keyName"
 }
 
+# Output
 output "bastion-pub-ip" {
   value = module.instance.bastion-public-ip
 }
