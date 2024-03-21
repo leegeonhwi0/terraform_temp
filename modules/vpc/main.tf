@@ -1,6 +1,6 @@
 locals {
-  az-1 = "us-east-1a"
-  az-2 = "us-east-1c"
+  az-1 = "ap-southeast-2a"
+  az-2 = "ap-southeast-2c"
 }
 
 # Create VPC
@@ -45,7 +45,7 @@ resource "aws_subnet" "pvt-sub-a" {
   cidr_block        = cidrsubnet(var.cidr_block, 8, 10 + count.index)
   availability_zone = local.az-1
   tags = {
-    Name = "${var.naming}-pvt-sub-a-${count.index + 1}"
+    Name = "${var.naming}-pvt-sub-a-0${count.index + 1}"
   }
 }
 
@@ -55,7 +55,7 @@ resource "aws_subnet" "pvt-sub-c" {
   cidr_block        = cidrsubnet(var.cidr_block, 8, 20 + count.index)
   availability_zone = local.az-2
   tags = {
-    Name = "${var.naming}-pvt-sub-c-${count.index + 1}"
+    Name = "${var.naming}-pvt-sub-c-0${count.index + 1}"
   }
 }
 

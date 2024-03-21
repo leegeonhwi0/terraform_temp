@@ -10,31 +10,34 @@ terraform {
 
 # Configure AWS Provider
 provider "aws" {
-  region = "us-east-1"
+  region = "ap-southeast-2"
 }
 
 # VPC Count
 module "main-vpc" {
   source     = "./modules/vpc"
-  naming     = "petclinic"
+  naming     = "pet"
   cidr_block = "10.0.0.0/16"
-  tier       = 2
+  tier       = 1
 }
 
 # Instance
 module "instance" {
   source       = "./modules/ec2"
-  naming       = "petclinic"
+  naming       = "pet"
   myIp         = "61.85.118.29/32"
   defVpcId     = module.main-vpc.def-vpc-id
   pubSubIds    = module.main-vpc.public-sub-ids
   pvtSubIds    = module.main-vpc.private-sub-ids
+  bastionAmi   = "ami-0868c56d68308169b"
+  ansSrvAmi    = "ami-0868c56d68308169b"
   ansSrvType   = "t2.medium"
   ansSrvVolume = 30
+  ansNodAmi    = "ami-0d6857b844e855670"
   ansNodType   = "t2.micro"
   ansNodVolume = 8
-  ansNodCount  = 2
-  keyName      = "petclinic-ec2"
+  ansNodCount  = 1
+  keyName      = "pet-ec2"
 }
 
 output "bastion-pub-ip" {

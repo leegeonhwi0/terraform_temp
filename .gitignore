@@ -33,7 +33,4 @@
 .sentinel
 
 # Data file
-azs.info
-instance.type
-myIp.info
-regions.info
+*.info

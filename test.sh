@@ -92,26 +92,69 @@ mkdir ./.ssh
 ssh-keygen -t rsa -b 4096 -C "" -f "./.ssh/$keyName" -N ""
 
 #인스턴스 생성
+aws ec2 describe-instance-type-offerings --location-type "availability-zone" --region us-east-1 --query "InstanceTypeOfferings[?starts_with(InstanceType, 't2')].[InstanceType]" --output text | sort | uniq > instance.info
 #BastionHost
+echo "BastionHost AMI 선택"
+echo "=============================="
+echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
+echo "=============================="
+read -p "번호 입력: " AmiNum
+AmiName=$(sed -n "${AmiNum}p" "amiName.info")
+aws ec2 describe-images \
+--owners amazon \
+--filters "Name=name,Values=$AmiName" "Name=state,Values=available" \
+--query "reverse(sort_by(Images, &Name))[:1].ImageId" \
+--region "$region" \
+--output text > ami.info
+
 #Ansible-Server
-aws ec2 describe-instance-type-offerings --location-type "availability-zone" --region us-east-1 --query "InstanceTypeOfferings[?starts_with(InstanceType, 't2')].[InstanceType]" --output text | sort | uniq > instance.type
+echo "앤서블 서버 AMI 선택"
+echo "=============================="
+echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
+echo "=============================="
+read -p "번호 입력: " AmiNum
+AmiName=$(sed -n "${AmiNum}p" "amiName.info")
+aws ec2 describe-images \
+--owners amazon \
+--filters "Name=name,Values=$AmiName" "Name=state,Values=available" \
+--query "reverse(sort_by(Images, &Name))[:1].ImageId" \
+--region "$region" \
+--output text >> ami.info
+
 echo "앤서블 서버 사양 선택"
 echo "===================="
-cat -n "instance.type"
+cat -n "instance.info"
 echo "===================="
 read -p "번호를 선택해주세요: " srvTypeSelect
-srvType=$(sed -n "${srvTypeSelect}p" "instance.type")
+srvType=$(sed -n "${srvTypeSelect}p" "instance.info")
 read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " srvVolume
+
 #Ansible-Node
+echo "앤서블 노드 AMI 선택"
+echo "=============================="
+echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
+echo "=============================="
+read -p "번호 입력: " AmiNum
+AmiName=$(sed -n "${AmiNum}p" "amiName.info")
+aws ec2 describe-images \
+--owners amazon \
+--filters "Name=name,Values=$AmiName" "Name=state,Values=available" \
+--query "reverse(sort_by(Images, &Name))[:1].ImageId" \
+--region "$region" \
+--output text >> ami.info
+
 echo "앤서블 노드 사양 선택"
 echo "===================="
-cat -n "instance.type"
+cat -n "instance.info"
 echo "===================="
 read -p "번호를 선택해주세요: " nodTypeSelect
-nodType=$(sed -n "${nodTypeSelect}p" "instance.type")
+nodType=$(sed -n "${nodTypeSelect}p" "instance.info")
 read -p "앤서블 서버 볼륨 크기[최소:8,최대:30]: " nodVolume
 read -p "앤서블 노드 수량: " nodCount
 
+bAmi=$(sed -n "1p" "ami.info")
+srvAmi=$(sed -n "2p" "ami.info")
+nodAmi=$(sed -n "3p" "ami.info")
 
 cat <<EOF >> main.tf
 
@@ -123,12 +166,27 @@ module "instance" {
   defVpcId   = module.main-vpc.def-vpc-id
   pubSubIds   = module.main-vpc.public-sub-ids
   pvtSubIds  = module.main-vpc.private-sub-ids
+  bastionAmi = "$bAmi"
+  ansSrvAmi = "$srvAmi"
   ansSrvType = "$srvType"
   ansSrvVolume = $srvVolume
+  ansNodAmi = "$nodAmi"
   ansNodType = "$nodType"
   ansNodVolume = $nodVolume
   ansNodCount = $nodCount
   keyName = "$keyName"
+}
+
+output "bastion-pub-ip" {
+  value = module.instance.bastion-public-ip
+}
+
+output "ans-srv-pvt-ip" {
+  value = module.instance.ans-srv-pvt-ip
+}
+
+output "ansible-nod-ids" {
+  value = module.instance.ansible-nod-ids
 }
 EOF
 

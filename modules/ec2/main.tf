@@ -156,7 +156,7 @@ resource "aws_key_pair" "terraform-key-pair" {
 
 # Instance
 resource "aws_instance" "bastion-host" {
-  ami             = "ami-02d7fd1c2af6eead0"
+  ami             = var.bastionAmi
   instance_type   = "t2.micro"
   subnet_id       = var.pubSubIds[0]
   key_name        = var.keyName
@@ -174,7 +174,7 @@ output "bastion-public-ip" {
 }
 
 resource "aws_instance" "ansible-server" {
-  ami           = "ami-02d7fd1c2af6eead0"
+  ami           = var.ansSrvAmi
   instance_type = var.ansSrvType
   subnet_id     = var.pvtSubIds[0]
   key_name      = var.keyName
@@ -203,7 +203,7 @@ output "ans-srv-pvt-ip" {
 
 resource "aws_instance" "ansible-nod" {
   count         = var.ansNodCount
-  ami           = "ami-02d7fd1c2af6eead0"
+  ami           = var.ansNodAmi
   instance_type = var.ansNodType
   subnet_id     = var.pvtSubIds[0]
   key_name      = var.keyName
@@ -224,7 +224,7 @@ resource "aws_instance" "ansible-nod" {
               EOF
 
   tags = {
-    Name = "ansible-nod-${count.index + 1}"
+    Name = "ansible-nod-0${count.index + 1}"
   }
 }
 

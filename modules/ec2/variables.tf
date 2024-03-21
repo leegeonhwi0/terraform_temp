@@ -48,3 +48,15 @@ variable "ansNodCount" {
 variable "keyName" {
   type = string
 }
+
+variable "bastionAmi" {
+  type = string
+}
+
+variable "ansSrvAmi" {
+  type = string
+}
+
+variable "ansNodAmi" {
+  type = string
+}
