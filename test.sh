@@ -93,18 +93,22 @@ keyName="$prjt-ec2"
 mkdir ./.ssh
 ssh-keygen -t rsa -b 4096 -C "" -f "./.ssh/$keyName" -N ""
 
-#인스턴스 생성
-aws ec2 describe-instance-type-offerings --location-type "availability-zone" --region us-east-1 --query "InstanceTypeOfferings[?starts_with(InstanceType, 't2')].[InstanceType]" --output text | sort | uniq > instance.info
+#인스턴스 관련
+aws ec2 describe-instance-type-offerings --location-type "availability-zone" --region us-east-1 --query "InstanceTypeOfferings[?starts_with(InstanceType, 't3')].[InstanceType]" --output text | sort | uniq > instance.info
+#유저이름 구분용 배열 선언
+declare -a amiNumList
+amiUserList=("ec2-user" "ubuntu" "ec2-user")
+
 #BastionHost
 echo "BastionHost AMI 선택"
 echo "=============================="
 echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
-read -p "번호 입력: " AmiNum
-AmiName=$(sed -n "${AmiNum}p" "amiName.info")
+read -p "번호 입력: " amiNum
+amiName=$(sed -n "${amiNum}p" "amiName.info")
 aws ec2 describe-images \
 --owners amazon \
---filters "Name=name,Values=$AmiName" "Name=state,Values=available" \
+--filters "Name=name,Values=$amiName" "Name=state,Values=available" \
 --query "reverse(sort_by(Images, &Name))[:1].ImageId" \
 --region "$region" \
 --output text > ami.info
@@ -114,11 +118,14 @@ echo "앤서블 서버 AMI 선택"
 echo "=============================="
 echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
-read -p "번호 입력: " AmiNum
-AmiName=$(sed -n "${AmiNum}p" "amiName.info")
+read -p "번호 입력: " amiNum
+((amiNum-=1))
+amiNumList+=("$amiNum")
+((amiNum+=1))
+amiName=$(sed -n "${amiNum}p" "amiName.info")
 aws ec2 describe-images \
 --owners amazon \
---filters "Name=name,Values=$AmiName" "Name=state,Values=available" \
+--filters "Name=name,Values=$amiName" "Name=state,Values=available" \
 --query "reverse(sort_by(Images, &Name))[:1].ImageId" \
 --region "$region" \
 --output text >> ami.info
@@ -136,11 +143,14 @@ echo "앤서블 노드 AMI 선택"
 echo "=============================="
 echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
-read -p "번호 입력: " AmiNum
-AmiName=$(sed -n "${AmiNum}p" "amiName.info")
+read -p "번호 입력: " amiNum
+((amiNum-=1))
+amiNumList+=("$amiNum")
+((amiNum+=1))
+amiName=$(sed -n "${amiNum}p" "amiName.info")
 aws ec2 describe-images \
 --owners amazon \
---filters "Name=name,Values=$AmiName" "Name=state,Values=available" \
+--filters "Name=name,Values=$amiName" "Name=state,Values=available" \
 --query "reverse(sort_by(Images, &Name))[:1].ImageId" \
 --region "$region" \
 --output text >> ami.info
@@ -154,9 +164,38 @@ nodType=$(sed -n "${nodTypeSelect}p" "instance.info")
 read -p "앤서블 노드 볼륨 크기[최소:10,최대:30]: " nodVolume
 read -p "앤서블 노드 수량: " nodCount
 
+# AMI 정보 저장
 bAmi=$(sed -n "1p" "ami.info")
 srvAmi=$(sed -n "2p" "ami.info")
 nodAmi=$(sed -n "3p" "ami.info")
+
+for var in "${amiNumList[@]}"
+do
+  echo "$var"
+done
+
+# OS User Name 저장
+if [ ${amiNumList[0]} == ${amiNumList[1]} ];then
+    echo "[all:vars]
+ansible_user=${amiUserList[${amiNumList[0]}]}
+ansible_ssh_private_key_file=/home/${amiUserList[${amiNumList[0]}]}/${prjt}-ec2
+
+[${amiUserList[${amiNumList[0]}]}]
+ansible-server" > user.info
+else
+    echo "[${amiUserList[${amiNumList[0]}]}:vars]
+ansible_user=${amiUserList[${amiNumList[0]}]}
+ansible_ssh_private_key_file=/home/${amiUserList[${amiNumList[0]}]}/${prjt}-ec2
+
+[${amiUserList[${amiNumList[0]}]}]
+ansible-server
+
+[${amiUserList[${amiNumList[1]}]}:vars]
+ansible_user=${amiUserList[${amiNumList[1]}]}
+ansible_ssh_private_key_file=/home/${amiUserList[${amiNumList[1]}]}/${prjt}-ec2
+
+[${amiUserList[${amiNumList[1]}]}]" > user.info
+fi
 
 cat <<EOF >> main.tf
 
@@ -164,7 +203,7 @@ cat <<EOF >> main.tf
 module "instance" {
   source     = "./modules/ec2"
   naming     = "$prjt"
-  myIp       = "61.85.118.29/32"
+  myIp       = "$myIp"
   defVpcId   = module.main-vpc.def-vpc-id
   pubSubIds   = module.main-vpc.public-sub-ids
   pvtSubIds  = module.main-vpc.private-sub-ids
@@ -188,18 +227,10 @@ output "ans-srv-pvt-ip" {
   value = module.instance.ans-srv-pvt-ip
 }
 
-output "ansible-nod-ids" {
-  value = module.instance.ansible-nod-ids
+output "ansible-nod-ips" {
+  value = module.instance.ansible-nod-ips
 }
 
-# Save File
-resource "null_resource" "save-output" {
-  provisioner "local-exec" {
-    command = "echo 'Apply Complete.'"
-  }
-
-  depends_on = [module.instance]
-}
 EOF
 
 #설정 파일 출력
