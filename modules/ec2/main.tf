@@ -164,7 +164,7 @@ resource "aws_key_pair" "terraform-key-pair" {
 # Instance
 resource "aws_instance" "bastion-host" {
   ami             = var.bastionAmi
-  instance_type   = "t2.micro"
+  instance_type   = "t3.micro"
   subnet_id       = var.pubSubIds[0]
   key_name        = var.keyName
   security_groups = [aws_security_group.bastion-sg.id]
