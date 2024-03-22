@@ -47,6 +47,20 @@ echo "ansUser=${ansUser}
 echo 'echo "cat ./user.info >> /etc/ansible/hosts
 " >> ansible.sh
 ' >> bastion.sh
+# echo 'echo "count=$(wc -l < keyscan.info)
+# keyscanList=()
+
+# for ((i=1; i<=\${count}; i++))
+# do
+#     keyscanList+=("\$(sed -n "${i}p" "keyscan.info")")
+# done
+
+# for ((i=0; i<=\${count-1}; i++))
+# do
+#     ssh-keyscan -t rsa \${keyscanList[${i}]}  >> /home/ec2-user/.ssh/known_hosts
+# done
+# " >> ansible.sh
+# ' >> bastion.sh
 echo "scp -i ./.ssh/${prjt}-ec2 ./ansible.sh ${ansUser}@${ansSrvIp}:~/
 " >> bastion.sh
 echo "ssh -i ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp} sudo sh ansible.sh
