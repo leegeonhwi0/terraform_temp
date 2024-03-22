@@ -28,15 +28,21 @@ ssh -i ./.ssh/${prjt}-ec2 ${bUser}@${bastionIp} sudo chmod 400 ./.ssh/${prjt}-ec
 
 #BastionHost에서 사용할 쉘파일 생성
 echo "#!bin/bash" > bastion.sh
-echo "ssh-keyscan -t rsa ${ansSrvIp} >> /home/${bUser}/.ssh/known_hosts\n" >> bastion.sh
-echo "scp -i ./.ssh/${prjt}-ec2 ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp}:~/.ssh/\n" >> bastion.sh
-echo "scp -i ./.ssh/${prjt}-ec2 ./user.info ${ansUser}@${ansSrvIp}:~/\n" >> bastion.sh
+echo "ssh-keyscan -t rsa ${ansSrvIp} >> /home/${bUser}/.ssh/known_hosts
+" >> bastion.sh
+echo "scp -i ./.ssh/${prjt}-ec2 ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp}:~/.ssh/
+" >> bastion.sh
+echo "scp -i ./.ssh/${prjt}-ec2 ./user.info ${ansUser}@${ansSrvIp}:~/
+" >> bastion.sh
 
 #AnsibleServer에서 사용할 쉘파일을 생성하는 쉘파일을 생성
 echo 'echo "#!bin/bash" > ansible.sh\n' >> bastion.sh
-echo 'echo "cat ./user.info >> ./.ansible/ansible-hosts" >> ansible.sh\n' >> bastion.sh
-echo "scp -i ./.ssh/${prjt}-ec2 ./ansible.sh ${ansUser}@${ansSrvIp}:~/\n" >> bastion.sh
-echo "ssh -i ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp} sh ansible.sh\n" >> bastion.sh
+echo 'echo "cat ./user.info >> ./.ansible/ansible-hosts" >> ansible.sh
+' >> bastion.sh
+echo "scp -i ./.ssh/${prjt}-ec2 ./ansible.sh ${ansUser}@${ansSrvIp}:~/
+" >> bastion.sh
+echo "ssh -i ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp} sh ansible.sh
+" >> bastion.sh
 
 #BastionHost로 쉘파일 전송 및 실행
 scp -i ./.ssh/${prjt}-ec2 ./bastion.sh ${bUser}@${bastionIp}:~/

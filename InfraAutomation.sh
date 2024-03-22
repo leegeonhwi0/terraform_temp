@@ -7,7 +7,7 @@ aws ec2 describe-regions --query "Regions[].{RegionName: RegionName}" --output t
 prjt=$(basename $(pwd))
 
 #유저이름 구분용 배열 선언
-declare -a amiNumList
+amiList=("AMZN2" "Ubuntu20.4" "RHEL9")
 amiUserList=("ec2-user" "ubuntu" "ec2-user")
 
 #루프문 시작
@@ -106,6 +106,9 @@ echo "=============================="
 echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
 read -p "번호 입력: " amiNum
+((amiNum-=1))
+bUser="${amiUserList[${amiNum}]}"
+((amiNum+=1))
 amiName=$(sed -n "${amiNum}p" "amiName.data")
 aws ec2 describe-images \
 --owners amazon \
@@ -113,6 +116,7 @@ aws ec2 describe-images \
 --query "reverse(sort_by(Images, &Name))[:1].ImageId" \
 --region "$region" \
 --output text > ami.info
+bAmi=$(sed -n "${amiNum}p" "ami.info")
 
 #Ansible-Server
 echo "앤서블 서버 AMI 선택"
@@ -121,7 +125,7 @@ echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
 read -p "번호 입력: " amiNum
 ((amiNum-=1))
-amiNumList+=("$amiNum")
+srvUser="${amiUserList[${amiNum}]}"
 ((amiNum+=1))
 amiName=$(sed -n "${amiNum}p" "amiName.data")
 aws ec2 describe-images \
@@ -130,6 +134,7 @@ aws ec2 describe-images \
 --query "reverse(sort_by(Images, &Name))[:1].ImageId" \
 --region "$region" \
 --output text >> ami.info
+srvAmi=$(sed -n "${amiNum}p" "ami.info")
 
 echo "앤서블 서버 사양 선택"
 echo "===================="
@@ -146,7 +151,7 @@ echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
 read -p "번호 입력: " amiNum
 ((amiNum-=1))
-amiNumList+=("$amiNum")
+nodUser="${amiUserList[${amiNum}]}"
 ((amiNum+=1))
 amiName=$(sed -n "${amiNum}p" "amiName.data")
 aws ec2 describe-images \
@@ -155,6 +160,7 @@ aws ec2 describe-images \
 --query "reverse(sort_by(Images, &Name))[:1].ImageId" \
 --region "$region" \
 --output text >> ami.info
+nodAmi=$(sed -n "${amiNum}p" "ami.info")
 
 echo "앤서블 노드 사양 선택"
 echo "===================="
@@ -165,38 +171,29 @@ nodType=$(sed -n "${nodTypeSelect}p" "instance.info")
 read -p "앤서블 노드 볼륨 크기[최소:10,최대:30]: " nodVolume
 read -p "앤서블 노드 수량: " nodCount
 
-# AMI 정보 저장
-bAmi=$(sed -n "1p" "ami.info")
-srvAmi=$(sed -n "2p" "ami.info")
-nodAmi=$(sed -n "3p" "ami.info")
-
-for var in "${amiNumList[@]}"
-do
-  echo "$var"
-done
-
-# OS User Name 저장
-if [ ${amiNumList[0]} == ${amiNumList[1]} ];then
+# Ansible용 파일 생성
+if [ ${srvUser} == ${nodUser} ];then
     echo "[all:vars]
-ansible_user=${amiUserList[${amiNumList[0]}]}
-ansible_ssh_private_key_file=/home/${amiUserList[${amiNumList[0]}]}/${prjt}-ec2
+ansible_user=${srvUser}
+ansible_ssh_private_key_file=/home/${srvUser}/${prjt}-ec2
 
-[${amiUserList[${amiNumList[0]}]}]
+[${srvUser}]
 localhost
 " > user.info
 else
-    echo "[${amiUserList[${amiNumList[0]}]}:vars]
-ansible_user=${amiUserList[${amiNumList[0]}]}
-ansible_ssh_private_key_file=/home/${amiUserList[${amiNumList[0]}]}/${prjt}-ec2
+    echo "[${srvUser}:vars]
+ansible_user=${srvUser}
+ansible_ssh_private_key_file=/home/${srvUser}/${prjt}-ec2
 
-[${amiUserList[${amiNumList[0]}]}]
+[${srvUser}]
 localhost
 
-[${amiUserList[${amiNumList[1]}]}:vars]
-ansible_user=${amiUserList[${amiNumList[1]}]}
-ansible_ssh_private_key_file=/home/${amiUserList[${amiNumList[1]}]}/${prjt}-ec2
+[${nodUser}:vars]
+ansible_user=${nodUser}
+ansible_ssh_private_key_file=/home/${nodUser}/${prjt}-ec2
 
-[${amiUserList[${amiNumList[1]}]}]" > user.info
+[${nodUser}]
+" > user.info
 fi
 
 cat <<EOF >> main.tf
@@ -236,18 +233,30 @@ output "ansible-nod-ips" {
 EOF
 
 #설정 파일 출력
-echo "==========main.tf=========="
-cat main.tf
-echo "==========================="
-echo "============ec2============"
-cat ./modules/ec2/main.tf
+echo "==========현재 설정=========="
+echo "가용영역1: ${azs1}"
+echo "가용영역2: ${azs2}"
+echo "프로젝트명: ${prjt}"
+echo "VPC_대역: ${vpcCidr}"
+echo "아키텍처_티어: ${tier}"
+echo "SSH_OPEN_IP: ${myIp}"
+echo "BASTION_AMI: ${bAmi}"
+echo "ANS_SRV_AMI: ${srvAmi}"
+echo "ANS_SRV_Type: ${srvType}"
+echo "ANS_SRV_Storage: ${srvVolume}"
+echo "ANS_NOD_AMI: ${nodAmi}"
+echo "ANS_NOD_Type: ${nodType}"
+echo "ANS_NOD_Storage: ${nodVolume}"
+echo "ANS_NOD_COUNT: ${nodCount}"
 echo "==========================="
 
 #내용 확인 선택문
 read -p "위 내용이 맞습니까?[y/n]: " check
 if [ $check == "y" ];then
-	echo "환경 설정이 완료되었습니다."
+	echo "환경설정이 완료되었습니다."
 	break	#루프문 탈출
+else
+  echo "환경설정을 초기화합니다."
 fi
 
 #루프문 끝
