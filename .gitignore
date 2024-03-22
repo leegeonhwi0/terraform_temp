@@ -34,5 +34,3 @@
 
 # Data file
 *.info
-!amiName.info
-!userName.info
