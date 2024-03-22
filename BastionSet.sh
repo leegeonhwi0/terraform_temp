@@ -4,7 +4,8 @@
 terraform output -json > output.json
 
 #앤서블 노드 ip 세팅
-cat output.json | jq -r ' .["ansible-nod-ids"].value[]' >> user.info
+cat output.json | jq -r ' .["ansible-nod-ips"].value[]' >> user.info
+cat output.json | jq -r ' .["ansible-nod-ips"].value[]' > keyscan.info
 
 #변수 세팅
 prjt=$(basename $(pwd))
@@ -24,15 +25,18 @@ ansSrvIp=$(cat output.json | jq -r '.["ans-srv-pvt-ip"].value')
 ssh-keyscan -t rsa ${bastionIp} >> ~/.ssh/known_hosts
 scp -i ./.ssh/${prjt}-ec2 ./.ssh/${prjt}-ec2 ${bUser}@${bastionIp}:~/.ssh/
 scp -i ./.ssh/${prjt}-ec2 ./user.info ${bUser}@${bastionIp}:~/
+scp -i ./.ssh/${prjt}-ec2 ./keyscan.info ${bUser}@${bastionIp}:~/
 ssh -i ./.ssh/${prjt}-ec2 ${bUser}@${bastionIp} sudo chmod 400 ./.ssh/${prjt}-ec2
 
 #BastionHost에서 사용할 쉘파일 생성
 echo "#!bin/bash" > bastion.sh
-echo "ssh-keyscan -t rsa ${ansSrvIp} >> /home/${bUser}/.ssh/known_hosts
+echo "ssh-keyscan -t rsa ${ansSrvIp} > /home/${bUser}/.ssh/known_hosts
 " >> bastion.sh
 echo "scp -i ./.ssh/${prjt}-ec2 ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp}:~/.ssh/
 " >> bastion.sh
 echo "scp -i ./.ssh/${prjt}-ec2 ./user.info ${ansUser}@${ansSrvIp}:~/
+" >> bastion.sh
+echo "scp -i ./.ssh/${prjt}-ec2 ./keyscan.info ${ansUser}@${ansSrvIp}:~/
 " >> bastion.sh
 
 #AnsibleServer에서 사용할 쉘파일을 생성하는 쉘파일을 생성
@@ -40,11 +44,12 @@ echo 'echo "#!bin/bash" > ansible.sh
 ' >> bastion.sh
 echo "ansUser=${ansUser}
 " >> bastion.sh
-echo 'echo "cat ./user.info >> /home/${ansUser}/.ansible/ansible-hosts" >> ansible.sh
+echo 'echo "cat ./user.info >> /etc/ansible/hosts
+" >> ansible.sh
 ' >> bastion.sh
 echo "scp -i ./.ssh/${prjt}-ec2 ./ansible.sh ${ansUser}@${ansSrvIp}:~/
 " >> bastion.sh
-echo "ssh -i ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp} sh ansible.sh
+echo "ssh -i ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp} sudo sh ansible.sh
 " >> bastion.sh
 
 #BastionHost로 쉘파일 전송 및 실행

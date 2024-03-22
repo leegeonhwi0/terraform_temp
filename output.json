@@ -2,7 +2,7 @@
   "ans-srv-pvt-ip": {
     "sensitive": false,
     "type": "string",
-    "value": "10.0.10.118"
+    "value": "10.0.10.186"
   },
   "ansible-nod-ips": {
     "sensitive": false,
@@ -15,14 +15,14 @@
       ]
     ],
     "value": [
-      "10.0.10.98",
-      "10.0.10.171",
-      "10.0.10.232"
+      "10.0.10.135",
+      "10.0.10.44",
+      "10.0.10.79"
     ]
   },
   "bastion-pub-ip": {
     "sensitive": false,
     "type": "string",
-    "value": "54.167.193.141"
+    "value": "34.228.188.188"
   }
 }

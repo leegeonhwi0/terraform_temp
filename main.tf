@@ -33,7 +33,7 @@ module "instance" {
   ansSrvAmi = "ami-02d7fd1c2af6eead0"
   ansSrvType = "t3.medium"
   ansSrvVolume = 30
-  ansNodAmi = "ami-02d7fd1c2af6eead0"
+  ansNodAmi = "ami-06f8dce63a6b60467"
   ansNodType = "t3.micro"
   ansNodVolume = 10
   ansNodCount = 3

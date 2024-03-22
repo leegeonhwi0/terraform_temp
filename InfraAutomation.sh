@@ -116,7 +116,7 @@ aws ec2 describe-images \
 --query "reverse(sort_by(Images, &Name))[:1].ImageId" \
 --region "$region" \
 --output text > ami.info
-bAmi=$(sed -n "${amiNum}p" "ami.info")
+bAmi=$(sed -n "1p" "ami.info")
 
 #Ansible-Server
 echo "앤서블 서버 AMI 선택"
@@ -134,7 +134,7 @@ aws ec2 describe-images \
 --query "reverse(sort_by(Images, &Name))[:1].ImageId" \
 --region "$region" \
 --output text >> ami.info
-srvAmi=$(sed -n "${amiNum}p" "ami.info")
+srvAmi=$(sed -n "2p" "ami.info")
 
 echo "앤서블 서버 사양 선택"
 echo "===================="
@@ -160,7 +160,7 @@ aws ec2 describe-images \
 --query "reverse(sort_by(Images, &Name))[:1].ImageId" \
 --region "$region" \
 --output text >> ami.info
-nodAmi=$(sed -n "${amiNum}p" "ami.info")
+nodAmi=$(sed -n "3p" "ami.info")
 
 echo "앤서블 노드 사양 선택"
 echo "===================="
@@ -192,8 +192,7 @@ localhost
 ansible_user=${nodUser}
 ansible_ssh_private_key_file=/home/${nodUser}/${prjt}-ec2
 
-[${nodUser}]
-" > user.info
+[${nodUser}]" > user.info
 fi
 
 cat <<EOF >> main.tf
