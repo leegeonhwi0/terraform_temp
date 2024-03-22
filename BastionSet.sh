@@ -44,32 +44,38 @@ echo 'echo "#!bin/bash" > ansible.sh
 ' >> bastion.sh
 echo "ansUser=${ansUser}
 " >> bastion.sh
-echo 'echo "cat ./user.info >> /etc/ansible/hosts
+echo 'echo "cat ./user.info > /etc/ansible/hosts
 " >> ansible.sh
 ' >> bastion.sh
-# echo 'echo "count=$(wc -l < keyscan.info)
-# keyscanList=()
-
-# for ((i=1; i<=\${count}; i++))
-# do
-#     keyscanList+=("\$(sed -n "${i}p" "keyscan.info")")
-# done
-
-# for ((i=0; i<=\${count-1}; i++))
-# do
-#     ssh-keyscan -t rsa \${keyscanList[${i}]}  >> /home/ec2-user/.ssh/known_hosts
-# done
-# " >> ansible.sh
-# ' >> bastion.sh
 echo "scp -i ./.ssh/${prjt}-ec2 ./ansible.sh ${ansUser}@${ansSrvIp}:~/
+" >> bastion.sh
+echo "scp -i ./.ssh/${prjt}-ec2 ./keyscan.sh ${ansUser}@${ansSrvIp}:~/
 " >> bastion.sh
 echo "ssh -i ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp} sudo sh ansible.sh
 " >> bastion.sh
+echo "ssh -i ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp} sudo sh keyscan.sh
+" >> bastion.sh
+
+#ssh-keyscan용 쉘 파일 생성
+echo "#!/bin/bash" > keyscan.sh
+
+count=$(wc -l < keyscan.info)
+keyscanList=()
+
+for ((i=1; i<=${count}; i++))
+do
+    keyscanList+=("$(sed -n "${i}p" "keyscan.info")")
+done
+
+for ((i=0; i<=${count-1}; i++))
+do
+    echo "ssh-keyscan -t rsa ${keyscanList[${i}]} >> /home/${ansUser}/.ssh/known_hosts
+    " >> keyscan.sh
+done
+
+echo "ssh-keyscan -t rsa localhost >> /home/${ansUser}/.ssh/known_hosts" >> keyscan.sh
 
 #BastionHost로 쉘파일 전송 및 실행
 scp -i ./.ssh/${prjt}-ec2 ./bastion.sh ${bUser}@${bastionIp}:~/
+scp -i ./.ssh/${prjt}-ec2 ./keyscan.sh ${bUser}@${bastionIp}:~/
 ssh -i ./.ssh/${prjt}-ec2 ${bUser}@${bastionIp} sh bastion.sh
-
-#사용이 끝난 파일 삭제
-rm -rf user.info
-rm -rf keyscan.info

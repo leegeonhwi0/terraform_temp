@@ -190,7 +190,7 @@ localhost
 
 [${nodUser}:vars]
 ansible_user=${nodUser}
-ansible_ssh_private_key_file=/home/${nodUser}/.ssh/${prjt}-ec2
+ansible_ssh_private_key_file=/home/${srvUser}/.ssh/${prjt}-ec2
 
 [${nodUser}]" > user.info
 fi
@@ -260,3 +260,6 @@ fi
 
 #루프문 끝
 done
+
+terraform init
+terraform apply
