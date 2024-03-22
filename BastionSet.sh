@@ -36,8 +36,11 @@ echo "scp -i ./.ssh/${prjt}-ec2 ./user.info ${ansUser}@${ansSrvIp}:~/
 " >> bastion.sh
 
 #AnsibleServer에서 사용할 쉘파일을 생성하는 쉘파일을 생성
-echo 'echo "#!bin/bash" > ansible.sh\n' >> bastion.sh
-echo 'echo "cat ./user.info >> ./.ansible/ansible-hosts" >> ansible.sh
+echo 'echo "#!bin/bash" > ansible.sh
+' >> bastion.sh
+echo "ansUser=${ansUser}
+" >> bastion.sh
+echo 'echo "cat ./user.info >> /home/${ansUser}/.ansible/ansible-hosts" >> ansible.sh
 ' >> bastion.sh
 echo "scp -i ./.ssh/${prjt}-ec2 ./ansible.sh ${ansUser}@${ansSrvIp}:~/
 " >> bastion.sh
