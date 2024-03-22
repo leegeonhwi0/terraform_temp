@@ -23,21 +23,21 @@ module "main-vpc" {
 
 # Instance
 module "instance" {
-  source       = "./modules/ec2"
-  naming       = "pet"
-  myIp         = "61.85.118.29/32"
-  defVpcId     = module.main-vpc.def-vpc-id
-  pubSubIds    = module.main-vpc.public-sub-ids
-  pvtSubIds    = module.main-vpc.private-sub-ids
-  bastionAmi   = "ami-0bef12ee7bc073414"
-  ansSrvAmi    = "ami-0bef12ee7bc073414"
-  ansSrvType   = "t3.medium"
+  source     = "./modules/ec2"
+  naming     = "pet"
+  myIp       = "61.85.118.29/32"
+  defVpcId   = module.main-vpc.def-vpc-id
+  pubSubIds   = module.main-vpc.public-sub-ids
+  pvtSubIds  = module.main-vpc.private-sub-ids
+  bastionAmi = "ami-02d7fd1c2af6eead0"
+  ansSrvAmi = "ami-02d7fd1c2af6eead0"
+  ansSrvType = "t3.micro"
   ansSrvVolume = 30
-  ansNodAmi    = "ami-0bef12ee7bc073414"
-  ansNodType   = "t3.micro"
+  ansNodAmi = "ami-02d7fd1c2af6eead0"
+  ansNodType = "t3.micro"
   ansNodVolume = 10
-  ansNodCount  = 1
-  keyName      = "pet-ec2"
+  ansNodCount = 1
+  keyName = "pet-ec2"
 }
 
 # Output
@@ -49,7 +49,7 @@ output "ans-srv-pvt-ip" {
   value = module.instance.ans-srv-pvt-ip
 }
 
-output "ansible-nod-ids" {
-  value = module.instance.ansible-nod-ids
+output "ansible-nod-ips" {
+  value = module.instance.ansible-nod-ips
 }
 

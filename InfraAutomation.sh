@@ -3,6 +3,13 @@
 #AWS 가용리전 목록 불러오기
 aws ec2 describe-regions --query "Regions[].{RegionName: RegionName}" --output text > regions.info
 
+#현재 디렉토리명을 프로젝트명으로 사용
+prjt=$(basename $(pwd))
+
+#유저이름 구분용 배열 선언
+declare -a amiNumList
+amiUserList=("ec2-user" "ubuntu" "ec2-user")
+
 #루프문 시작
 while :
 do
@@ -50,9 +57,6 @@ sed -i "s/az-1 = \"[^\"]*\"/az-1 = \"$azs1\"/g" ./modules/vpc/main.tf
 azs2=$(sed -n "${azs_choice2}p" "azs.info")
 sed -i "s/az-2 = \"[^\"]*\"/az-2 = \"$azs2\"/g" ./modules/vpc/main.tf
 
-#프로젝트명 입력
-read -p "프로젝트명 입력: " prjt
-
 #VPC 대역 설정
 vpcCidr="10.0.0.0/16"
 read -p "VPC IP 대역 설정[Default:10.0.0.0/16]: " vpcCidrInput
@@ -95,9 +99,6 @@ ssh-keygen -t rsa -b 4096 -C "" -f "./.ssh/$keyName" -N ""
 
 #인스턴스 관련
 aws ec2 describe-instance-type-offerings --location-type "availability-zone" --region us-east-1 --query "InstanceTypeOfferings[?starts_with(InstanceType, 't3')].[InstanceType]" --output text | sort | uniq > instance.info
-#유저이름 구분용 배열 선언
-declare -a amiNumList
-amiUserList=("ec2-user" "ubuntu" "ec2-user")
 
 #BastionHost
 echo "BastionHost AMI 선택"
@@ -105,7 +106,7 @@ echo "=============================="
 echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
 read -p "번호 입력: " amiNum
-amiName=$(sed -n "${amiNum}p" "amiName.info")
+amiName=$(sed -n "${amiNum}p" "amiName.data")
 aws ec2 describe-images \
 --owners amazon \
 --filters "Name=name,Values=$amiName" "Name=state,Values=available" \
@@ -122,7 +123,7 @@ read -p "번호 입력: " amiNum
 ((amiNum-=1))
 amiNumList+=("$amiNum")
 ((amiNum+=1))
-amiName=$(sed -n "${amiNum}p" "amiName.info")
+amiName=$(sed -n "${amiNum}p" "amiName.data")
 aws ec2 describe-images \
 --owners amazon \
 --filters "Name=name,Values=$amiName" "Name=state,Values=available" \
@@ -147,7 +148,7 @@ read -p "번호 입력: " amiNum
 ((amiNum-=1))
 amiNumList+=("$amiNum")
 ((amiNum+=1))
-amiName=$(sed -n "${amiNum}p" "amiName.info")
+amiName=$(sed -n "${amiNum}p" "amiName.data")
 aws ec2 describe-images \
 --owners amazon \
 --filters "Name=name,Values=$amiName" "Name=state,Values=available" \
@@ -181,14 +182,15 @@ ansible_user=${amiUserList[${amiNumList[0]}]}
 ansible_ssh_private_key_file=/home/${amiUserList[${amiNumList[0]}]}/${prjt}-ec2
 
 [${amiUserList[${amiNumList[0]}]}]
-ansible-server" > user.info
+localhost
+" > user.info
 else
     echo "[${amiUserList[${amiNumList[0]}]}:vars]
 ansible_user=${amiUserList[${amiNumList[0]}]}
 ansible_ssh_private_key_file=/home/${amiUserList[${amiNumList[0]}]}/${prjt}-ec2
 
 [${amiUserList[${amiNumList[0]}]}]
-ansible-server
+localhost
 
 [${amiUserList[${amiNumList[1]}]}:vars]
 ansible_user=${amiUserList[${amiNumList[1]}]}
