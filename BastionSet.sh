@@ -69,3 +69,7 @@ echo "ssh -i ./.ssh/${prjt}-ec2 ${ansUser}@${ansSrvIp} sudo sh ansible.sh
 #BastionHost로 쉘파일 전송 및 실행
 scp -i ./.ssh/${prjt}-ec2 ./bastion.sh ${bUser}@${bastionIp}:~/
 ssh -i ./.ssh/${prjt}-ec2 ${bUser}@${bastionIp} sh bastion.sh
+
+#사용이 끝난 파일 삭제
+rm -rf user.info
+rm -rf keyscan.info

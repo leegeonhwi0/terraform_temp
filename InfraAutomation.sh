@@ -175,7 +175,7 @@ read -p "앤서블 노드 수량: " nodCount
 if [ ${srvUser} == ${nodUser} ];then
     echo "[all:vars]
 ansible_user=${srvUser}
-ansible_ssh_private_key_file=/home/${srvUser}/${prjt}-ec2
+ansible_ssh_private_key_file=/home/${srvUser}/.ssh/${prjt}-ec2
 
 [${srvUser}]
 localhost
@@ -183,14 +183,14 @@ localhost
 else
     echo "[${srvUser}:vars]
 ansible_user=${srvUser}
-ansible_ssh_private_key_file=/home/${srvUser}/${prjt}-ec2
+ansible_ssh_private_key_file=/home/${srvUser}/.ssh/${prjt}-ec2
 
 [${srvUser}]
 localhost
 
 [${nodUser}:vars]
 ansible_user=${nodUser}
-ansible_ssh_private_key_file=/home/${nodUser}/${prjt}-ec2
+ansible_ssh_private_key_file=/home/${nodUser}/.ssh/${prjt}-ec2
 
 [${nodUser}]" > user.info
 fi
