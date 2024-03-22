@@ -264,6 +264,6 @@ resource "aws_instance" "ansible-nod" {
   }
 }
 
-output "ansible-nod-ids" {
+output "ansible-nod-ips" {
   value = aws_instance.ansible-nod[*].private_ip
 }
