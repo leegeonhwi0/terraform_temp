@@ -221,6 +221,10 @@ resource "aws_instance" "ansible-server" {
     volume_size = var.ansSrvVolume
   }
 
+  provisioner "local-exec" {
+    command = "aws elbv2 register-targets --target-group-arn ${aws_lb_target_group.jenkins-tg.arn} --targets Id=${self.id}"
+  }
+
   user_data = <<-EOF
               #!/bin/bash
               sudo amazon-linux-extras enable ansible2
