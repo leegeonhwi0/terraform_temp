@@ -7,7 +7,7 @@ aws ec2 describe-regions --query "Regions[].{RegionName: RegionName}" --output t
 prjt=$(basename $(pwd))
 
 #유저이름 구분용 배열 선언
-amiList=("AMZN2" "Ubuntu20.4" "RHEL9")
+amiList=("AL2023" "Ubuntu20.4" "RHEL9")
 amiUserList=("ec2-user" "ubuntu" "ec2-user")
 
 #루프문 시작
@@ -103,7 +103,7 @@ aws ec2 describe-instance-type-offerings --location-type "availability-zone" --r
 #BastionHost
 echo "BastionHost AMI 선택"
 echo "=============================="
-echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
+echo "1.AL2023 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
 read -p "번호 입력: " amiNum
 ((amiNum-=1))
@@ -121,7 +121,7 @@ bAmi=$(sed -n "1p" "ami.info")
 #Ansible-Server
 echo "앤서블 서버 AMI 선택"
 echo "=============================="
-echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
+echo "1.AL2023 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
 read -p "번호 입력: " amiNum
 ((amiNum-=1))
@@ -147,7 +147,7 @@ read -p "앤서블 서버 볼륨 크기[최소:20,최대:30]: " srvVolume
 #Ansible-Node
 echo "앤서블 노드 AMI 선택"
 echo "=============================="
-echo "1.AMZN2 2.Ubuntu-20.04 3.RHEL9"
+echo "1.AL2023 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
 read -p "번호 입력: " amiNum
 ((amiNum-=1))
@@ -202,9 +202,10 @@ module "instance" {
   source     = "./modules/ec2"
   naming     = "$prjt"
   myIp       = "$myIp/32"
-  defVpcId   = module.main-vpc.def-vpc-id
-  pubSubIds   = module.main-vpc.public-sub-ids
-  pvtSubIds  = module.main-vpc.private-sub-ids
+  defVpcId     = module.main_vpc.def_vpc_id
+  pubSubIds    = module.main_vpc.public_sub_ids
+  pvtSubAIds   = module.main_vpc.private_sub_a_ids
+  pvtSubCIds   = module.main_vpc.private_sub_a_ids
   bastionAmi = "$bAmi"
   ansSrvAmi = "$srvAmi"
   ansSrvType = "$srvType"
@@ -231,7 +232,7 @@ output "ansible-nod-ips" {
 
 EOF
 
-#설정 파일 출력
+설정 파일 출력
 echo "==========현재 설정=========="
 echo "가용영역1: ${azs1}"
 echo "가용영역2: ${azs2}"
@@ -260,6 +261,3 @@ fi
 
 #루프문 끝
 done
-
-terraform init
-terraform apply

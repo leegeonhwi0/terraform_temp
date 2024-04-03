@@ -21,7 +21,11 @@ variable "pubSubIds" {
   type = list(string)
 }
 
-variable "pvtSubIds" {
+variable "pvtSubAIds" {
+  type = list(string)
+}
+
+variable "pvtSubCIds" {
   type = list(string)
 }
 
