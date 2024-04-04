@@ -18,7 +18,7 @@ variable "defVpcId" {
 }
 
 variable "pubSubIds" {
-  type = list(string)
+  type = [list(string)]
 }
 
 variable "pvtSubAIds" {
@@ -29,15 +29,15 @@ variable "pvtSubCIds" {
   type = list(string)
 }
 
-variable "ansSrvType" {
+variable "kubeCtlType" {
   type = string
 }
 
-variable "ansSrvVolume" {
+variable "kubeCtlVolume" {
   type = number
 }
 
-variable "ansNodType" {
+variable "kubeNodType" {
   type = string
 }
 
@@ -45,7 +45,7 @@ variable "ansNodVolume" {
   type = number
 }
 
-variable "ansNodCount" {
+variable "kubeNodCount" {
   type = number
 }
 
@@ -57,10 +57,10 @@ variable "bastionAmi" {
   type = string
 }
 
-variable "ansSrvAmi" {
+variable "kubeCtlAmi" {
   type = string
 }
 
-variable "ansNodAmi" {
+variable "kubeNodAmi" {
   type = string
 }

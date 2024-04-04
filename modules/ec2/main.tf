@@ -154,7 +154,7 @@ resource "aws_lb" "srv_alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = var.pubSubIds
+  subnets            = var.pubSubIds[0]
 }
 
 # LB Listener
@@ -180,50 +180,53 @@ resource "aws_lb_listener" "jenkins_alb_http" {
   }
 }
 
-# # aws_key_pair resource 설정
-# resource "aws_key_pair" "terraform_key_pair" {
-#   # 등록할 key pair의 name
-#   key_name = var.keyName
+# aws_key_pair resource 설정
+resource "aws_key_pair" "terraform_key_pair" {
+  # 등록할 key pair의 name
+  key_name = var.keyName
 
-#   # public_key = "{.pub 파일 내용}"
-#   public_key = file("./.ssh/${var.keyName}.pub")
+  # public_key = "{.pub 파일 내용}"
+  public_key = file("./.ssh/${var.keyName}.pub")
 
-#   tags = {
-#     description = "terraform key pair import"
-#   }
-# }
+  tags = {
+    description = "terraform key pair import"
+  }
+}
 
 # Instance
 resource "aws_instance" "bastion_host" {
+  count = length[var.pubSubIds]
   ami             = var.bastionAmi
   instance_type   = "t3.micro"
-  subnet_id       = var.pubSubIds[0]
+  subnet_id       = var.pubSubIds[count.index]
   key_name        = var.keyName
   security_groups = [aws_security_group.bastion_sg.id]
 
   associate_public_ip_address = true
 
   tags = {
-    Name = "${var.naming}_bastion_host"
+    Name = "${var.naming}_bastion_host${count.index + 1}"
   }
 }
 
 
-resource "aws_instance" "ansible_server" {
-  ami           = var.ansSrvAmi
-  instance_type = var.ansSrvType
+resource "aws_instance" "kube_controller" {
+  count         = 3
+  ami           = var.kubeCtlAmi
+  instance_type = var.kubeCtlType
   subnet_id     = var.pvtSubAIds[0]
   key_name      = var.keyName
 
   vpc_security_group_ids = [aws_security_group.ans_srv_sg.id]
 
   root_block_device {
-    volume_size = var.ansSrvVolume
+    volume_size = var.kubeCtlVolume
   }
 
   # provisioner "local_exec" {
-  #   command = "aws elbv2 register_targets __target_group_arn ${aws_lb_target_group.jenkins_tg.arn} __targets Id=${self.id}"
+  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.jenkins-tg.arn} --targets Id=${self.id}"
   # }
+
 
   user_data = <<EOF
               #!/bin/bash
@@ -233,15 +236,15 @@ resource "aws_instance" "ansible_server" {
               EOF
 
   tags = {
-    Name = "ansible_server"
+    Name = "kube-controller${count.index + 1}"
   }
 }
 
 
-resource "aws_instance" "ansible_nod" {
-  count         = var.ansNodCount
-  ami           = var.ansNodAmi
-  instance_type = var.ansNodType
+resource "aws_instance" "kube_worker" {
+  count         = var.kubeNodCount
+  ami           = var.kubeNodAmi
+  instance_type = var.kubeNodType
   subnet_id     = var.pvtSubAIds[0]
   key_name      = var.keyName
 
@@ -252,15 +255,16 @@ resource "aws_instance" "ansible_nod" {
   }
 
   # provisioner "local_exec" {
-  #   command = "aws elbv2 register_targets __target_group_arn ${aws_lb_target_group.service_tg.arn} __targets Id=${self.id}"
+  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.service-tg.arn} --targets Id=${self.id}"
   # }
+
 
   user_data = <<EOF
               #!/bin/bash
-              sudo hostnamectl set_hostname ansible_agent0${count.index + 1}
+              sudo hostnamectl set_hostname kube-worker${count.index + 1}
               EOF
 
   tags = {
-    Name = "ansible_nod_0${count.index + 1}"
+    Name = "kube-worker${count.index + 1}"
   }
 }

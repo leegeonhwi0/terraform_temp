@@ -5,13 +5,13 @@ output "srv_alb_name" {
 
 
 output "bastion_public_ip" {
-  value = aws_instance.bastion_host.public_ip
+  value = aws_instance.bastion_host[*].public_ip
 }
 
 output "ans_srv_pvt_ip" {
-  value = aws_instance.ansible_server.private_ip
+  value = aws_instance.kube-controller[*].private_ip
 }
 
 output "ansible_nod_ips" {
-  value = aws_instance.ansible_nod[*].private_ip
+  value = aws_instance.kube_worker[*].private_ip
 }

@@ -98,7 +98,7 @@ mkdir ./.ssh
 ssh-keygen -t rsa -b 4096 -C "" -f "./.ssh/$keyName" -N ""
 
 #인스턴스 관련
-aws ec2 describe-instance-type-offerings --location-type "availability-zone" --region us-east-1 --query "InstanceTypeOfferings[?starts_with(InstanceType, 't3')].[InstanceType]" --output text | sort | uniq > instance.info
+aws ec2 describe-instance-type-offerings --location-type "availability-zone" --region $region --query "InstanceTypeOfferings[?starts_with(InstanceType, 't3')].[InstanceType]" --output text | sort | uniq > instance.info
 
 #BastionHost
 echo "BastionHost AMI 선택"
@@ -205,15 +205,15 @@ module "instance" {
   defVpcId     = module.main_vpc.def_vpc_id
   pubSubIds    = module.main_vpc.public_sub_ids
   pvtSubAIds   = module.main_vpc.private_sub_a_ids
-  pvtSubCIds   = module.main_vpc.private_sub_a_ids
+  pvtSubCIds   = module.main_vpc.private_sub_c_ids
   bastionAmi = "$bAmi"
-  ansSrvAmi = "$srvAmi"
-  ansSrvType = "$srvType"
-  ansSrvVolume = $srvVolume
-  ansNodAmi = "$nodAmi"
-  ansNodType = "$nodType"
+  kubeCtlAmi = "$srvAmi"
+  kubeCtlType = "$srvType"
+  kubeCtlVolume = $srvVolume
+  kubeNodAmi = "$nodAmi"
+  kubeNodType = "$nodType"
   ansNodVolume = $nodVolume
-  ansNodCount = $nodCount
+  kubeNodCount = $nodCount
   keyName = "$keyName"
 }
 
