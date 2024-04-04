@@ -8,8 +8,12 @@ output "bastion_public_ips" {
   value = aws_instance.bastion_host[*].public_ip
 }
 
-output "kube-controller_ips" {
-  value = aws_instance.kube-controller[*].private_ip
+output "kube_controller_ips" {
+  value = aws_instance.kube_controller[*].private_ip
+}
+
+output "kube_controller_ips_c" {
+  value = aws_instance.kube_controller_c[*].private_ip
 }
 
 output "kube_worker_ips" {

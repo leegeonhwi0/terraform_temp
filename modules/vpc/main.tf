@@ -1,11 +1,11 @@
 locals {
-  az_1 = "ap_south_1a"
-  az_2 = "ap_south_1c"
+  az-1 = "ap-south-1a"
+  az-2 = "ap-south-1c"
 }
 
 # Create VPC
 resource "aws_vpc" "def_vpc" {
-  cidr_block = var.cidr_block
+  cidr_block = var.cidrBlock
   tags = {
     Name = "${var.naming}_vpc"
   }
@@ -14,8 +14,8 @@ resource "aws_vpc" "def_vpc" {
 # Create Public Subnet
 resource "aws_subnet" "pub_a" {
   vpc_id            = aws_vpc.def_vpc.id
-  cidr_block        = cidrsubnet(var.cidr_block, 8, 1)
-  availability_zone = local.az_1
+  cidr_block        = cidrsubnet(var.cidrBlock, 8, 1)
+  availability_zone = local.az-1
   tags = {
     Name = "${var.naming}_pub_a"
   }
@@ -23,8 +23,8 @@ resource "aws_subnet" "pub_a" {
 
 resource "aws_subnet" "pub_c" {
   vpc_id            = aws_vpc.def_vpc.id
-  cidr_block        = cidrsubnet(var.cidr_block, 8, 2)
-  availability_zone = local.az_2
+  cidr_block        = cidrsubnet(var.cidrBlock, 8, 2)
+  availability_zone = local.az-2
   tags = {
     Name = "${var.naming}_pub_c"
   }
@@ -34,8 +34,8 @@ resource "aws_subnet" "pub_c" {
 resource "aws_subnet" "pvt_a" {
   count             = var.tier
   vpc_id            = aws_vpc.def_vpc.id
-  cidr_block        = cidrsubnet(var.cidr_block, 8, 10 + count.index)
-  availability_zone = local.az_1
+  cidr_block        = cidrsubnet(var.cidrBlock, 8, 10 + count.index)
+  availability_zone = local.az-1
   tags = {
     Name = "${var.naming}_pvt_a_0${count.index + 1}"
   }
@@ -44,8 +44,8 @@ resource "aws_subnet" "pvt_a" {
 resource "aws_subnet" "pvt_c" {
   count             = var.tier
   vpc_id            = aws_vpc.def_vpc.id
-  cidr_block        = cidrsubnet(var.cidr_block, 8, 20 + count.index)
-  availability_zone = local.az_2
+  cidr_block        = cidrsubnet(var.cidrBlock, 8, 20 + count.index)
+  availability_zone = local.az-2
   tags = {
     Name = "${var.naming}_pvt_c_0${count.index + 1}"
   }
@@ -69,10 +69,17 @@ resource "aws_route_table" "public_rt" {
 }
 
 # Create a Private Route table
-resource "aws_route_table" "private_rt" {
+resource "aws_route_table" "private_rt_a" {
   vpc_id = aws_vpc.def_vpc.id
   tags = {
-    Name = "${var.naming}_private_route_table"
+    Name = "${var.naming}_private_route_table_a"
+  }
+}
+
+resource "aws_route_table" "private_rt_c" {
+  vpc_id = aws_vpc.def_vpc.id
+  tags = {
+    Name = "${var.naming}_private_route_table_c"
   }
 }
 
@@ -92,14 +99,14 @@ resource "aws_route_table_association" "public_route_table_association_c" {
 resource "aws_route_table_association" "private_route_table_association_a" {
   count          = var.tier
   subnet_id      = aws_subnet.pvt_a[count.index].id
-  route_table_id = aws_route_table.private_rt.id
+  route_table_id = aws_route_table.private_rt_a.id
 }
 
 # Private Route Table Association C
 resource "aws_route_table_association" "private_route_table_association_c" {
   count          = var.tier
   subnet_id      = aws_subnet.pvt_c[count.index].id
-  route_table_id = aws_route_table.private_rt.id
+  route_table_id = aws_route_table.private_rt_c.id
 }
 
 # Create a EIP
@@ -149,13 +156,13 @@ resource "aws_route" "pub_r" {
 
 # Associate Private Subnets with NAT Gateway
 resource "aws_route" "private_r_a" {
-  route_table_id         = aws_route_table.private_rt.id
+  route_table_id         = aws_route_table.private_rt_a.id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.nat_a.id
 }
 
 resource "aws_route" "private_r_c" {
-  route_table_id         = aws_route_table.private_rt.id
+  route_table_id         = aws_route_table.private_rt_c.id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.nat_c.id
 }

@@ -13,7 +13,7 @@ resource "aws_security_group" "bastion_sg" {
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "_1"
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -29,14 +29,14 @@ resource "aws_security_group" "alb_sg" {
   ingress {
     from_port   = 0
     to_port     = 0
-    protocol    = "_1"
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "_1"
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -44,8 +44,7 @@ resource "aws_security_group" "alb_sg" {
     Name = "${var.naming}_alb_sg"
   }
 }
-
-resource "aws_security_group" "ans_srv_sg" {
+resource "aws_security_group" "kube_cluster_sg" {
   name   = "${var.naming}_ans_srv_sg"
   vpc_id = var.defVpcId
 
@@ -57,60 +56,79 @@ resource "aws_security_group" "ans_srv_sg" {
   }
 
   ingress {
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
-  }
-
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = [var.myIp]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "_1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.naming}_ans_srv_sg"
-  }
-}
-
-resource "aws_security_group" "ans_nod_sg" {
-  name   = "${var.naming}_ans_nod_sg"
-  vpc_id = var.defVpcId
-
-  ingress {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
+  }
+  ingress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }
+
+  ingress {
+    from_port       = 6443
+    to_port         = 6443
+    protocol        = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }
+
+  ingress {
+    from_port       = 2379
+    to_port         = 2380
+    protocol        = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }
+ 
+  ingress {
+    from_port       = 10250
+    to_port         = 10250
+    protocol        = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }
+
+  ingress {
+    from_port       = 10252
+    to_port         = 10252
+    protocol        = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }
+
+  ingress {
+    from_port       = 10255
+    to_port         = 10255
+    protocol        = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }  
+  
+  ingress {
+    from_port       = 30000
+    to_port         = 32767
+    protocol        = "tcp"
+    cidr_blocks = [var.cidrBlock]
   }
 
   ingress {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [aws_security_group.ans_srv_sg.id]
+    security_groups = [aws_security_group.kube_cluster_sg.id]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "_1"
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
-    Name = "${var.naming}_ans_nod_sg"
+    Name = "${var.naming}_kube_cluster_sg"
   }
 }
+
 
 # TargetGroup
 resource "aws_lb_target_group" "service_tg" {
@@ -154,7 +172,7 @@ resource "aws_lb" "srv_alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = var.pubSubIds[0]
+  subnets            = var.pubSubIds
 }
 
 # LB Listener
@@ -195,7 +213,7 @@ resource "aws_key_pair" "terraform_key_pair" {
 
 # Instance
 resource "aws_instance" "bastion_host" {
-  count = length[var.pubSubIds]
+  count           = length(var.pubSubIds)
   ami             = var.bastionAmi
   instance_type   = "t3.micro"
   subnet_id       = var.pubSubIds[count.index]
@@ -217,7 +235,7 @@ resource "aws_instance" "kube_controller" {
   subnet_id     = var.pvtSubAIds[0]
   key_name      = var.keyName
 
-  vpc_security_group_ids = [aws_security_group.ans_srv_sg.id]
+  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
 
   root_block_device {
     volume_size = var.kubeCtlVolume
@@ -230,7 +248,8 @@ resource "aws_instance" "kube_controller" {
 
   user_data = <<EOF
               #!/bin/bash
-              sudo hostnamectl set_hostname kube-contoller${count.index + 1}
+              sudo hostnamectl set-hostname kube-contoller${count.index + 1}
+              sudo echo "127.0.1.1 kube-contoller${count.index + 1}" | sudo tee -a /etc/hosts
               EOF
 
   tags = {
@@ -239,14 +258,44 @@ resource "aws_instance" "kube_controller" {
   }
 }
 
-resource "aws_instance" "kube_controller" {
+resource "aws_instance" "kube_controller_c" {
   count         = 1
   ami           = var.kubeCtlAmi
   instance_type = var.kubeCtlType
   subnet_id     = var.pvtSubCIds[0]
   key_name      = var.keyName
 
-  vpc_security_group_ids = [aws_security_group.ans_srv_sg.id]
+  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
+
+  root_block_device {
+    volume_size = var.kubeCtlVolume
+  }
+
+  # provisioner "local_exec" {
+  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.jenkins-tg.arn} --targets Id=${self.id}"
+
+  # }
+
+  user_data = <<EOF
+              #!/bin/bash
+              sudo hostnamectl set-hostname kube-contoller${count.index + 3}
+              sudo echo "127.0.1.1 kube-contoller${count.index + 3}" | sudo tee -a /etc/hosts
+              EOF
+
+  tags = {
+    Name = "kube-controller${count.index + 1}"
+    role = "kubecluster"
+  }
+}
+
+resource "aws_instance" "haproxy" {
+  count         = 1
+  ami           = var.kubeCtlAmi
+  instance_type = var.kubeCtlType
+  subnet_id     = var.pvtSubCIds[0]
+  key_name      = var.keyName
+
+  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
 
   root_block_device {
     volume_size = var.kubeCtlVolume
@@ -259,11 +308,12 @@ resource "aws_instance" "kube_controller" {
 
   user_data = <<EOF
               #!/bin/bash
-              sudo hostnamectl set_hostname kube-contoller${count.index + 3}
+              sudo hostnamectl set-hostname haproxy${count.index +1}
+              sudo echo "127.0.1.1 haproxy${count.index +1}" | sudo tee -a /etc/hosts              
               EOF
 
   tags = {
-    Name = "kube-controller${count.index + 1}"
+    Name = "haproxy${count.index + 1}"
     role = "kubecluster"
   }
 }
@@ -273,10 +323,10 @@ resource "aws_instance" "kube_worker" {
   count         = var.kubeNodCount
   ami           = var.kubeNodAmi
   instance_type = var.kubeNodType
-  subnet_id     = var.pvtSubAIds[0]
+  subnet_id     = var.pvtSubAIds[1]
   key_name      = var.keyName
 
-  vpc_security_group_ids = [aws_security_group.ans_nod_sg.id]
+  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
 
   root_block_device {
     volume_size = var.kubeNodVolume
@@ -289,11 +339,41 @@ resource "aws_instance" "kube_worker" {
 
   user_data = <<EOF
               #!/bin/bash
-              sudo hostnamectl set_hostname kube-worker${count.index + 1}
+              sudo hostnamectl set-hostname kube-worker${count.index + 1}
+              sudo echo "127.0.1.1 kube-worker${count.index + 1}" | sudo tee -a /etc/hosts
               EOF
 
   tags = {
     Name = "kube-worker${count.index + 1}"
+    role = "kubecluster"
+  }
+}
+resource "aws_instance" "kube_worker_c" {
+  count         = var.kubeNodCount
+  ami           = var.kubeNodAmi
+  instance_type = var.kubeNodType
+  subnet_id     = var.pvtSubCIds[1]
+  key_name      = var.keyName
+
+  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
+
+  root_block_device {
+    volume_size = var.kubeNodVolume
+  }
+
+  # provisioner "local_exec" {
+  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.service-tg.arn} --targets Id=${self.id}"
+  # }
+
+
+  user_data = <<EOF
+              #!/bin/bash
+              sudo hostnamectl set-hostname kube-worker${count.index + 3}
+              sudo echo "127.0.1.1 kube-worker${count.index + 3}" | sudo tee -a /etc/hosts
+              EOF
+
+  tags = {
+    Name = "kube-worker${count.index + 3}"
     role = "kubecluster"
   }
 }

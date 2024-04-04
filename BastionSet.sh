@@ -4,8 +4,10 @@
 terraform output -json >output.json
 
 #앤서블 노드 ip 세팅
-cat output.json | jq -r ' .["ansible_nod_ips"].value[]' >>user.info
-cat output.json | jq -r ' .["ansible_nod_ips"].value[]' >keyscan.info
+cat output.json | jq -r ' .["kube_controller_ip"].value[]' >>user.info
+cat output.json | jq -r ' .["kube_controller_ip_c"].value[]' >>user.info
+cat output.json | jq -r ' .["kube_worker_ips"].value[]' >>user.info
+cat output.json | jq -r ' .["kube_worker_ips"].value[]' >keyscan.info
 
 #변수 세팅
 prjt=$(basename $(pwd))

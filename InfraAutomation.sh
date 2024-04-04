@@ -74,7 +74,7 @@ cat <<EOF >> main.tf
 module "main-vpc" {
   source     = "./modules/vpc"
   naming     = "$prjt"
-  cidr_block = "$vpcCidr"
+  cidrBlock = ["$vpcCidr"]
   tier       = $tier
 }
 EOF
@@ -203,6 +203,7 @@ module "instance" {
   naming     = "$prjt"
   myIp       = "$myIp/32"
   defVpcId     = module.main_vpc.def_vpc_id
+  cidrBlock = ["$vpcCidr"]
   pubSubIds    = module.main_vpc.public_sub_ids
   pvtSubAIds   = module.main_vpc.private_sub_a_ids
   pvtSubCIds   = module.main_vpc.private_sub_c_ids
@@ -219,11 +220,11 @@ module "instance" {
 
 # Output
 output "bastion-pub-ip" {
-  value = module.instance.bastion-public-ips
+  value = module.instance.bastion_public_ips
 }
 
 output "kube-controller-ip" {
-  value = module.instance.kube-controller_ips
+  value = module.instance.kube_controller_ips
 }
 
 output "kube_worker-ips" {
