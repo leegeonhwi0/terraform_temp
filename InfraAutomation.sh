@@ -219,15 +219,15 @@ module "instance" {
 
 # Output
 output "bastion-pub-ip" {
-  value = module.instance.bastion-public-ip
+  value = module.instance.bastion-public-ips
 }
 
-output "ans-srv-pvt-ip" {
-  value = module.instance.ans-srv-pvt-ip
+output "kube-controller-ip" {
+  value = module.instance.kube-controller_ips
 }
 
-output "ansible-nod-ips" {
-  value = module.instance.ansible-nod-ips
+output "kube_worker-ips" {
+  value = module.instance.kube_worker_ips
 }
 
 EOF
