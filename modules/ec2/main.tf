@@ -211,7 +211,7 @@ resource "aws_instance" "bastion_host" {
 
 
 resource "aws_instance" "kube_controller" {
-  count         = 3
+  count         = 2
   ami           = var.kubeCtlAmi
   instance_type = var.kubeCtlType
   subnet_id     = var.pvtSubAIds[0]
@@ -230,13 +230,41 @@ resource "aws_instance" "kube_controller" {
 
   user_data = <<EOF
               #!/bin/bash
-              sudo amazon_linux_extras enable ansible2
-              sudo yum clean metadata
-              sudo yum install -y ansible
+              sudo hostnamectl set_hostname kube-contoller${count.index + 1}
               EOF
 
   tags = {
     Name = "kube-controller${count.index + 1}"
+    role = "kubecluster"
+  }
+}
+
+resource "aws_instance" "kube_controller" {
+  count         = 1
+  ami           = var.kubeCtlAmi
+  instance_type = var.kubeCtlType
+  subnet_id     = var.pvtSubCIds[0]
+  key_name      = var.keyName
+
+  vpc_security_group_ids = [aws_security_group.ans_srv_sg.id]
+
+  root_block_device {
+    volume_size = var.kubeCtlVolume
+  }
+
+  # provisioner "local_exec" {
+  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.jenkins-tg.arn} --targets Id=${self.id}"
+  # }
+
+
+  user_data = <<EOF
+              #!/bin/bash
+              sudo hostnamectl set_hostname kube-contoller${count.index + 3}
+              EOF
+
+  tags = {
+    Name = "kube-controller${count.index + 1}"
+    role = "kubecluster"
   }
 }
 
@@ -251,7 +279,7 @@ resource "aws_instance" "kube_worker" {
   vpc_security_group_ids = [aws_security_group.ans_nod_sg.id]
 
   root_block_device {
-    volume_size = var.ansNodVolume
+    volume_size = var.kubeNodVolume
   }
 
   # provisioner "local_exec" {
@@ -266,5 +294,6 @@ resource "aws_instance" "kube_worker" {
 
   tags = {
     Name = "kube-worker${count.index + 1}"
+    role = "kubecluster"
   }
 }

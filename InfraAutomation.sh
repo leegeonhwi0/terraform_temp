@@ -212,7 +212,7 @@ module "instance" {
   kubeCtlVolume = $srvVolume
   kubeNodAmi = "$nodAmi"
   kubeNodType = "$nodType"
-  ansNodVolume = $nodVolume
+  kubeNodVolume = $nodVolume
   kubeNodCount = $nodCount
   keyName = "$keyName"
 }

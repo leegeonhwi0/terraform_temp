@@ -18,7 +18,7 @@ variable "defVpcId" {
 }
 
 variable "pubSubIds" {
-  type = [list(string)]
+  type = list(string)
 }
 
 variable "pvtSubAIds" {
@@ -41,7 +41,7 @@ variable "kubeNodType" {
   type = string
 }
 
-variable "ansNodVolume" {
+variable "kubeNodVolume" {
   type = number
 }
 
