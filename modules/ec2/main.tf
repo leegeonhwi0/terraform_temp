@@ -248,13 +248,12 @@ resource "aws_instance" "kube_controller" {
 
   user_data = <<EOF
               #!/bin/bash
-              sudo hostnamectl set-hostname kube-contoller${count.index + 1}
-              sudo echo "127.0.1.1 kube-contoller${count.index + 1}" | sudo tee -a /etc/hosts
               EOF
 
   tags = {
     Name = "kube-controller${count.index + 1}"
     role = "kubecluster"
+    feat = "controller"
   }
 }
 
@@ -276,23 +275,24 @@ resource "aws_instance" "kube_controller_c" {
 
   # }
 
-  user_data = <<EOF
-              #!/bin/bash
-              sudo hostnamectl set-hostname kube-contoller${count.index + 3}
-              sudo echo "127.0.1.1 kube-contoller${count.index + 3}" | sudo tee -a /etc/hosts
-              EOF
+  # user_data = <<EOF
+  #             #!/bin/bash
+  #             sudo hostnamectl set-hostname kube-contoller${count.index + 3}
+  #             sudo echo "127.0.1.1 kube-contoller${count.index + 3}" | sudo tee -a /etc/hosts
+  #             EOF
 
   tags = {
     Name = "kube-controller${count.index + 1}"
     role = "kubecluster"
+    feat = "controller"
   }
 }
 
-resource "aws_instance" "haproxy" {
+resource "aws_instance" "haproxy1" {
   count         = 1
   ami           = var.kubeCtlAmi
   instance_type = var.kubeCtlType
-  subnet_id     = var.pvtSubCIds[0]
+  subnet_id     = var.pvtSubAIds[1]
   key_name      = var.keyName
 
   vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
@@ -306,15 +306,35 @@ resource "aws_instance" "haproxy" {
   # }
 
 
-  user_data = <<EOF
-              #!/bin/bash
-              sudo hostnamectl set-hostname haproxy${count.index +1}
-              sudo echo "127.0.1.1 haproxy${count.index +1}" | sudo tee -a /etc/hosts              
-              EOF
+  # user_data = <<EOF
+  #             #!/bin/bash
+  #             sudo hostnamectl set-hostname haproxy${count.index +1}
+  #             sudo echo "127.0.1.1 haproxy${count.index +1}" | sudo tee -a /etc/hosts              
+  #             EOF
 
   tags = {
     Name = "haproxy${count.index + 1}"
     role = "kubecluster"
+    feat = "haproxy"
+  }
+}
+
+resource "aws_instance" "haproxy2" {
+  count         = 1
+  ami           = var.kubeCtlAmi
+  instance_type = var.kubeCtlType
+  subnet_id     = var.pvtSubCIds[1]
+  key_name      = var.keyName
+
+  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
+
+  root_block_device {
+    volume_size = var.kubeCtlVolume
+  }
+    tags = {
+    Name = "haproxy${count.index + 2}"
+    role = "kubecluster"
+    feat = "haproxy"
   }
 }
 
@@ -323,7 +343,7 @@ resource "aws_instance" "kube_worker" {
   count         = var.kubeNodCount
   ami           = var.kubeNodAmi
   instance_type = var.kubeNodType
-  subnet_id     = var.pvtSubAIds[1]
+  subnet_id     = var.pvtSubAIds[2]
   key_name      = var.keyName
 
   vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
@@ -337,22 +357,23 @@ resource "aws_instance" "kube_worker" {
   # }
 
 
-  user_data = <<EOF
-              #!/bin/bash
-              sudo hostnamectl set-hostname kube-worker${count.index + 1}
-              sudo echo "127.0.1.1 kube-worker${count.index + 1}" | sudo tee -a /etc/hosts
-              EOF
+  # user_data = <<EOF
+  #             #!/bin/bash
+  #             sudo hostnamectl set-hostname kube-worker${count.index + 1}
+  #             sudo echo "127.0.1.1 kube-worker${count.index + 1}" | sudo tee -a /etc/hosts
+  #             EOF
 
   tags = {
     Name = "kube-worker${count.index + 1}"
     role = "kubecluster"
+    feat = "worker"
   }
 }
 resource "aws_instance" "kube_worker_c" {
   count         = var.kubeNodCount
   ami           = var.kubeNodAmi
   instance_type = var.kubeNodType
-  subnet_id     = var.pvtSubCIds[1]
+  subnet_id     = var.pvtSubCIds[2]
   key_name      = var.keyName
 
   vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
@@ -366,14 +387,15 @@ resource "aws_instance" "kube_worker_c" {
   # }
 
 
-  user_data = <<EOF
-              #!/bin/bash
-              sudo hostnamectl set-hostname kube-worker${count.index + 3}
-              sudo echo "127.0.1.1 kube-worker${count.index + 3}" | sudo tee -a /etc/hosts
-              EOF
+  # user_data = <<EOF
+  #             #!/bin/bash
+  #             sudo hostnamectl set-hostname kube-worker${count.index + 3}
+  #             sudo echo "127.0.1.1 kube-worker${count.index + 3}" | sudo tee -a /etc/hosts
+  #             EOF
 
   tags = {
     Name = "kube-worker${count.index + 3}"
     role = "kubecluster"
+    feat = "worker"
   }
 }
