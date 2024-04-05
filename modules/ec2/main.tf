@@ -114,7 +114,7 @@ resource "aws_security_group" "kube_cluster_sg" {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [aws_security_group.kube_cluster_sg.id]
+    cidr_blocks = [var.cidrBlock]
   }
 
   egress {
