@@ -71,7 +71,7 @@ read -p "아키텍쳐 티어 설정[1/2/3]: " tier
 cat <<EOF >> main.tf
 
 # VPC Count
-module "main-vpc" {
+module "main_vpc" {
   source     = "./modules/vpc"
   naming     = "$prjt"
   cidrBlock = ["$vpcCidr"]
