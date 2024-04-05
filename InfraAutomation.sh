@@ -227,8 +227,24 @@ output "kube-controller-ip" {
   value = module.instance.kube_controller_ips
 }
 
-output "kube_worker-ips" {
+output "kube-controller-ip-c" {
+  value = module.instance.kube_controller_ips_c
+}
+
+output "kube-worker-ip" {
   value = module.instance.kube_worker_ips
+}
+
+output "kube-worker-ip-c" {
+  value = module.instance.kube_worker_ips_c
+}
+
+output "haproxy-ip" {
+  value = module.instance.haproxy1_ips
+}
+
+output "haproxy1-ip" {
+  value = module.instance.haproxy2_ips
 }
 
 EOF

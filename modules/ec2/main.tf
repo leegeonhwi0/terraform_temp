@@ -248,6 +248,11 @@ resource "aws_instance" "kube_controller" {
 
   user_data = <<EOF
               #!/bin/bash
+              sudo yum install ansible -y
+              ansible --version
+              sudo yum install python3-pip -y
+              sudo pip3 install boto3
+              sudo pip3 install --upgrade awscli
               EOF
 
   tags = {
@@ -275,11 +280,14 @@ resource "aws_instance" "kube_controller_c" {
 
   # }
 
-  # user_data = <<EOF
-  #             #!/bin/bash
-  #             sudo hostnamectl set-hostname kube-contoller${count.index + 3}
-  #             sudo echo "127.0.1.1 kube-contoller${count.index + 3}" | sudo tee -a /etc/hosts
-  #             EOF
+  user_data = <<EOF
+              #!/bin/bash
+              sudo yum install ansible -y
+              ansible --version
+              sudo yum install python3-pip -y
+              sudo pip3 install boto3
+              sudo pip3 install --upgrade awscli
+              EOF
 
   tags = {
     Name = "kube-controller${count.index + 1}"
