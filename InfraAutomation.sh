@@ -74,7 +74,7 @@ cat <<EOF >> main.tf
 module "main_vpc" {
   source     = "./modules/vpc"
   naming     = "$prjt"
-  cidrBlock = ["$vpcCidr"]
+  cidrBlock = "$vpcCidr"
   tier       = $tier
 }
 EOF
@@ -203,7 +203,7 @@ module "instance" {
   naming     = "$prjt"
   myIp       = "$myIp/32"
   defVpcId     = module.main_vpc.def_vpc_id
-  cidrBlock = ["$vpcCidr"]
+  cidrBlock = "$vpcCidr"
   pubSubIds    = module.main_vpc.public_sub_ids
   pvtSubAIds   = module.main_vpc.private_sub_a_ids
   pvtSubCIds   = module.main_vpc.private_sub_c_ids

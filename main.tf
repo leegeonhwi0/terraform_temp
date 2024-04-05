@@ -14,10 +14,10 @@ provider "aws" {
 }
 
 # VPC Count
-module "main-vpc" {
+module "main_vpc" {
   source     = "./modules/vpc"
   naming     = "gymfit_dev"
-  cidrBlock = ["10.0.0.0/16"]
+  cidrBlock = "10.0.0.0/16"
   tier       = 3
 }
 
@@ -27,7 +27,7 @@ module "instance" {
   naming     = "gymfit_dev"
   myIp       = "61.85.118.29/32"
   defVpcId     = module.main_vpc.def_vpc_id
-  cidrBlock = ["10.0.0.0/16"]
+  cidrBlock = "10.0.0.0/16"
   pubSubIds    = module.main_vpc.public_sub_ids
   pvtSubAIds   = module.main_vpc.private_sub_a_ids
   pvtSubCIds   = module.main_vpc.private_sub_c_ids
