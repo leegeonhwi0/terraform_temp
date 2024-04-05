@@ -132,7 +132,7 @@ resource "aws_security_group" "kube_cluster_sg" {
 
 # TargetGroup
 resource "aws_lb_target_group" "service_tg" {
-  name     = "${var.naming}-service-tg"
+  name     = "service-tg"
   port     = 8888
   protocol = "HTTP"
   vpc_id   = var.defVpcId
@@ -149,7 +149,7 @@ resource "aws_lb_target_group" "service_tg" {
 }
 
 resource "aws_lb_target_group" "jenkins_tg" {
-  name     = "${var.naming}-jenkins-tg"
+  name     = "svr-jenkins-tg"
   port     = 8080
   protocol = "HTTP"
 
@@ -168,7 +168,7 @@ resource "aws_lb_target_group" "jenkins_tg" {
 
 # LoadBalancer
 resource "aws_lb" "srv_alb" {
-  name               = "${var.naming}-alb"
+  name               = "svc-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
