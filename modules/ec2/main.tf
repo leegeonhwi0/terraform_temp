@@ -246,8 +246,8 @@ resource "aws_instance" "kube_controller" {
   # }
 
 
-  user_data = <<EOF
-              #!/bin/bash
+  user_data = <<-EOF
+              #!/bin/bash -x
               sudo yum install ansible -y
               ansible --version
               sudo yum install python3-pip -y
@@ -281,7 +281,7 @@ resource "aws_instance" "kube_controller_c" {
   # }
 
   user_data = <<EOF
-              #!/bin/bash
+              #!/bin/bash -x
               sudo yum install ansible -y
               ansible --version
               sudo yum install python3-pip -y
@@ -290,7 +290,7 @@ resource "aws_instance" "kube_controller_c" {
               EOF
 
   tags = {
-    Name = "kube-controller${count.index + 1}"
+    Name = "kube-controller${count.index + 3}"
     role = "kubecluster"
     feat = "controller"
   }
@@ -316,7 +316,7 @@ resource "aws_instance" "haproxy1" {
 
   # user_data = <<EOF
   #             #!/bin/bash
-  #             sudo hostnamectl set-hostname haproxy${count.index +1}
+  #             sudo hostnamectl set-hostname haproxy${count.index +1}#테라폼 변수를 userdata에서 못읽어서 작동안함
   #             sudo echo "127.0.1.1 haproxy${count.index +1}" | sudo tee -a /etc/hosts              
   #             EOF
 
@@ -367,7 +367,7 @@ resource "aws_instance" "kube_worker" {
 
   # user_data = <<EOF
   #             #!/bin/bash
-  #             sudo hostnamectl set-hostname kube-worker${count.index + 1}
+  #             sudo hostnamectl set-hostname kube-worker${count.index + 1}#테라폼 변수를 userdata에서 못읽어서 작동안함
   #             sudo echo "127.0.1.1 kube-worker${count.index + 1}" | sudo tee -a /etc/hosts
   #             EOF
 
@@ -397,7 +397,7 @@ resource "aws_instance" "kube_worker_c" {
 
   # user_data = <<EOF
   #             #!/bin/bash
-  #             sudo hostnamectl set-hostname kube-worker${count.index + 3}
+  #             sudo hostnamectl set-hostname kube-worker${count.index + 3} #테라폼 변수를 userdata에서 못읽어서 작동안함
   #             sudo echo "127.0.1.1 kube-worker${count.index + 3}" | sudo tee -a /etc/hosts
   #             EOF
 
