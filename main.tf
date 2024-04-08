@@ -15,31 +15,31 @@ provider "aws" {
 
 # VPC Count
 module "main_vpc" {
-  source     = "./modules/vpc"
-  naming     = "gymfit_dev"
+  source    = "./modules/vpc"
+  naming    = "gymfit_test"
   cidrBlock = "10.0.0.0/16"
-  tier       = 3
+  tier      = 3
 }
 
 # Instance
 module "instance" {
-  source     = "./modules/ec2"
-  naming     = "gymfit_dev"
-  myIp       = "61.85.118.29/32"
-  defVpcId     = module.main_vpc.def_vpc_id
-  cidrBlock = "10.0.0.0/16"
-  pubSubIds    = module.main_vpc.public_sub_ids
-  pvtSubAIds   = module.main_vpc.private_sub_a_ids
-  pvtSubCIds   = module.main_vpc.private_sub_c_ids
-  bastionAmi = "ami-0bc47a3406a8143ba"
-  kubeCtlAmi = "ami-0bc47a3406a8143ba"
-  kubeCtlType = "t3.medium"
+  source        = "./modules/ec2"
+  naming        = "gymfit_test"
+  myIp          = "222.118.135.114/32"
+  defVpcId      = module.main_vpc.def_vpc_id
+  cidrBlock     = "10.0.0.0/16"
+  pubSubIds     = module.main_vpc.public_sub_ids
+  pvtSubAIds    = module.main_vpc.private_sub_a_ids
+  pvtSubCIds    = module.main_vpc.private_sub_c_ids
+  bastionAmi    = "ami-0bc47a3406a8143ba"
+  kubeCtlAmi    = "ami-0bc47a3406a8143ba"
+  kubeCtlType   = "t3.medium"
   kubeCtlVolume = 20
-  kubeNodAmi = "ami-0bc47a3406a8143ba"
-  kubeNodType = "t3.medium"
+  kubeNodAmi    = "ami-0bc47a3406a8143ba"
+  kubeNodType   = "t3.medium"
   kubeNodVolume = 20
-  kubeNodCount = 2
-  keyName = "gymfit_dev-ec2"
+  kubeNodCount  = 2
+  keyName       = "gymfit_test-ec2"
 }
 
 # Output
@@ -70,3 +70,4 @@ output "haproxy-ip" {
 output "haproxy1-ip" {
   value = module.instance.haproxy2_ips
 }
+

@@ -62,59 +62,65 @@ resource "aws_security_group" "kube_cluster_sg" {
     security_groups = [aws_security_group.alb_sg.id]
   }
   ingress {
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
     cidr_blocks = [var.cidrBlock]
   }
 
   ingress {
-    from_port       = 6443
-    to_port         = 6443
-    protocol        = "tcp"
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
     cidr_blocks = [var.cidrBlock]
   }
 
   ingress {
-    from_port       = 2379
-    to_port         = 2380
-    protocol        = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
- 
-  ingress {
-    from_port       = 10250
-    to_port         = 10250
-    protocol        = "tcp"
+    from_port   = 2379
+    to_port     = 2380
+    protocol    = "tcp"
     cidr_blocks = [var.cidrBlock]
   }
 
   ingress {
-    from_port       = 10252
-    to_port         = 10252
-    protocol        = "tcp"
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
     cidr_blocks = [var.cidrBlock]
   }
 
   ingress {
-    from_port       = 10255
-    to_port         = 10255
-    protocol        = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }  
-  
-  ingress {
-    from_port       = 30000
-    to_port         = 32767
-    protocol        = "tcp"
+    from_port   = 10252
+    to_port     = 10252
+    protocol    = "tcp"
     cidr_blocks = [var.cidrBlock]
   }
 
   ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
+    from_port   = 10255
+    to_port     = 10255
+    protocol    = "tcp"
     cidr_blocks = [var.cidrBlock]
+  }
+
+  ingress {
+    from_port   = 30000
+    to_port     = 32767
+    protocol    = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }
+  ingress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   egress {
@@ -122,6 +128,12 @@ resource "aws_security_group" "kube_cluster_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   tags = {
@@ -189,7 +201,7 @@ resource "aws_lb_listener" "srv_alb_http" {
 
 resource "aws_lb_listener" "jenkins_alb_http" {
   load_balancer_arn = aws_lb.srv_alb.arn
-  port              = 8080
+  port              = 30080
   protocol          = "HTTP"
 
   default_action {
@@ -339,7 +351,7 @@ resource "aws_instance" "haproxy2" {
   root_block_device {
     volume_size = var.kubeCtlVolume
   }
-    tags = {
+  tags = {
     Name = "haproxy${count.index + 2}"
     role = "kubecluster"
     feat = "haproxy"
