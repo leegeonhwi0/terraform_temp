@@ -16,7 +16,7 @@ provider "aws" {
 # VPC Count
 module "main_vpc" {
   source    = "./modules/vpc"
-  naming    = "gymfit_test"
+  naming    = "gymfit-test"
   cidrBlock = "10.0.0.0/16"
   tier      = 3
 }
@@ -24,13 +24,15 @@ module "main_vpc" {
 # Instance
 module "instance" {
   source        = "./modules/ec2"
-  naming        = "gymfit_test"
+  naming        = "gymfit-test"
   myIp          = "222.118.135.114/32"
   defVpcId      = module.main_vpc.def_vpc_id
   cidrBlock     = "10.0.0.0/16"
   pubSubIds     = module.main_vpc.public_sub_ids
-  pvtSubAIds    = module.main_vpc.private_sub_a_ids
-  pvtSubCIds    = module.main_vpc.private_sub_c_ids
+  pvtAppSubAIds = module.main_vpc.pri_app_sub_a_ids
+  pvtAppSubCIds = module.main_vpc.pri_app_sub_c_ids
+  pvtDBSubAIds  = module.main_vpc.pri_db_sub_a_ids
+  pvtDBSubCIds  = module.main_vpc.pri_db_sub_c_ids
   bastionAmi    = "ami-0bc47a3406a8143ba"
   kubeCtlAmi    = "ami-0bc47a3406a8143ba"
   kubeCtlType   = "t3.medium"
@@ -51,23 +53,14 @@ output "kube-controller-ip" {
   value = module.instance.kube_controller_ips
 }
 
-output "kube-controller-ip-c" {
-  value = module.instance.kube_controller_ips_c
-}
 
 output "kube-worker-ip" {
   value = module.instance.kube_worker_ips
 }
 
-output "kube-worker-ip-c" {
-  value = module.instance.kube_worker_ips_c
-}
 
 output "haproxy-ip" {
-  value = module.instance.haproxy1_ips
+  value = module.instance.haproxy_ips
 }
 
-output "haproxy1-ip" {
-  value = module.instance.haproxy2_ips
-}
 

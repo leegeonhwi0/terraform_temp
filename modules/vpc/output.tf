@@ -2,12 +2,20 @@ output "def_vpc_id" {
   value = aws_vpc.def_vpc.id
 }
 
-output "private_sub_a_ids" {
-  value = aws_subnet.pvt_a[*].id
+output "pri_app_sub_a_ids" {
+  value = aws_subnet.pri_app_a.id
 }
 
-output "private_sub_c_ids" {
-  value = aws_subnet.pvt_c[*].id
+output "pri_app_sub_c_ids" {
+  value = aws_subnet.pri_app_c.id
+}
+
+output "pri_db_sub_a_ids" {
+  value = aws_subnet.pri_db_a.id
+}
+
+output "pri_db_sub_c_ids" {
+  value = aws_subnet.pri_db_c.id
 }
 
 output "public_sub_ids" {

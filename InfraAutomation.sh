@@ -199,23 +199,25 @@ cat <<EOF >> main.tf
 
 # Instance
 module "instance" {
-  source     = "./modules/ec2"
-  naming     = "$prjt"
-  myIp       = "$myIp/32"
-  defVpcId     = module.main_vpc.def_vpc_id
-  cidrBlock = "$vpcCidr"
-  pubSubIds    = module.main_vpc.public_sub_ids
-  pvtSubAIds   = module.main_vpc.private_sub_a_ids
-  pvtSubCIds   = module.main_vpc.private_sub_c_ids
-  bastionAmi = "$bAmi"
-  kubeCtlAmi = "$srvAmi"
-  kubeCtlType = "$srvType"
-  kubeCtlVolume = $srvVolume
-  kubeNodAmi = "$nodAmi"
-  kubeNodType = "$nodType"
-  kubeNodVolume = $nodVolume
-  kubeNodCount = $nodCount
-  keyName = "$keyName"
+  source        = "./modules/ec2"
+  naming        = "gymfit_test"
+  myIp          = "222.118.135.114/32"
+  defVpcId      = module.main_vpc.def_vpc_id
+  cidrBlock     = "10.0.0.0/16"
+  pubSubIds     = module.main_vpc.public_sub_ids
+  pvtAppSubAIds = module.main_vpc.pri_app_sub_a_ids
+  pvtAppSubCIds = module.main_vpc.pri_app_sub_c_ids
+  pvtDBSubAIds  = module.main_vpc.pri_db_sub_a_ids
+  pvtDBSubCIds  = module.main_vpc.pri_db_sub_c_ids
+  bastionAmi    = "ami-0bc47a3406a8143ba"
+  kubeCtlAmi    = "ami-0bc47a3406a8143ba"
+  kubeCtlType   = "t3.medium"
+  kubeCtlVolume = 20
+  kubeNodAmi    = "ami-0bc47a3406a8143ba"
+  kubeNodType   = "t3.medium"
+  kubeNodVolume = 20
+  kubeNodCount  = 2
+  keyName       = "gymfit_test-ec2"
 }
 
 # Output
@@ -227,24 +229,13 @@ output "kube-controller-ip" {
   value = module.instance.kube_controller_ips
 }
 
-output "kube-controller-ip-c" {
-  value = module.instance.kube_controller_ips_c
-}
 
 output "kube-worker-ip" {
   value = module.instance.kube_worker_ips
 }
 
-output "kube-worker-ip-c" {
-  value = module.instance.kube_worker_ips_c
-}
-
 output "haproxy-ip" {
-  value = module.instance.haproxy1_ips
-}
-
-output "haproxy1-ip" {
-  value = module.instance.haproxy2_ips
+  value = module.instance.haproxy_ips
 }
 
 EOF

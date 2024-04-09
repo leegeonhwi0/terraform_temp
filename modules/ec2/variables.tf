@@ -21,12 +21,20 @@ variable "pubSubIds" {
   type = list(string)
 }
 
-variable "pvtSubAIds" {
-  type = list(string)
+variable "pvtAppSubAIds" {
+  type = string
 }
 
-variable "pvtSubCIds" {
-  type = list(string)
+variable "pvtAppSubCIds" {
+  type = string
+}
+
+variable "pvtDBSubAIds" {
+  type = string
+}
+
+variable "pvtDBSubCIds" {
+  type = string
 }
 
 variable "kubeCtlType" {

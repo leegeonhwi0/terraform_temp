@@ -102,6 +102,18 @@ resource "aws_security_group" "kube_cluster_sg" {
     protocol    = "tcp"
     cidr_blocks = [var.cidrBlock]
   }
+  ingress {
+    from_port   = 10257
+    to_port     = 10257
+    protocol    = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }
+  ingress {
+    from_port   = 10259
+    to_port     = 10259
+    protocol    = "tcp"
+    cidr_blocks = [var.cidrBlock]
+  }
 
   ingress {
     from_port   = 30000
@@ -116,6 +128,7 @@ resource "aws_security_group" "kube_cluster_sg" {
     protocol    = "tcp"
     cidr_blocks = [var.cidrBlock]
   }
+
   ingress {
     from_port        = 0
     to_port          = 0
@@ -129,12 +142,6 @@ resource "aws_security_group" "kube_cluster_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    ipv6_cidr_blocks = ["::/0"]
-  }
 
   tags = {
     Name = "${var.naming}_kube_cluster_sg"
@@ -144,7 +151,7 @@ resource "aws_security_group" "kube_cluster_sg" {
 
 # TargetGroup
 resource "aws_lb_target_group" "service_tg" {
-  name     = "service-tg"
+  name     = "${var.naming}-service-tg"
   port     = 8888
   protocol = "HTTP"
   vpc_id   = var.defVpcId
@@ -161,7 +168,7 @@ resource "aws_lb_target_group" "service_tg" {
 }
 
 resource "aws_lb_target_group" "jenkins_tg" {
-  name     = "svr-jenkins-tg"
+  name     = "${var.naming}-jenkins-tg"
   port     = 8080
   protocol = "HTTP"
 
@@ -180,7 +187,7 @@ resource "aws_lb_target_group" "jenkins_tg" {
 
 # LoadBalancer
 resource "aws_lb" "srv_alb" {
-  name               = "svc-alb"
+  name               = "${var.naming}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
@@ -199,7 +206,7 @@ resource "aws_lb_listener" "srv_alb_http" {
   }
 }
 
-resource "aws_lb_listener" "jenkins_alb_http" {
+resource "aws_lb_listener" "jenkins_alb_nodeport" {
   load_balancer_arn = aws_lb.srv_alb.arn
   port              = 30080
   protocol          = "HTTP"
@@ -241,10 +248,10 @@ resource "aws_instance" "bastion_host" {
 
 
 resource "aws_instance" "kube_controller" {
-  count         = 2
+  count         = 3
   ami           = var.kubeCtlAmi
   instance_type = var.kubeCtlType
-  subnet_id     = var.pvtSubAIds[0]
+  subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
   key_name      = var.keyName
 
   vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
@@ -274,45 +281,12 @@ resource "aws_instance" "kube_controller" {
   }
 }
 
-resource "aws_instance" "kube_controller_c" {
-  count         = 1
+
+resource "aws_instance" "haproxy" {
+  count         = 2
   ami           = var.kubeCtlAmi
   instance_type = var.kubeCtlType
-  subnet_id     = var.pvtSubCIds[0]
-  key_name      = var.keyName
-
-  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
-
-  root_block_device {
-    volume_size = var.kubeCtlVolume
-  }
-
-  # provisioner "local_exec" {
-  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.jenkins-tg.arn} --targets Id=${self.id}"
-
-  # }
-
-  user_data = <<EOF
-              #!/bin/bash -x
-              sudo yum install ansible -y
-              ansible --version
-              sudo yum install python3-pip -y
-              sudo pip3 install boto3
-              sudo pip3 install --upgrade awscli
-              EOF
-
-  tags = {
-    Name = "kube-controller${count.index + 3}"
-    role = "kubecluster"
-    feat = "controller"
-  }
-}
-
-resource "aws_instance" "haproxy1" {
-  count         = 1
-  ami           = var.kubeCtlAmi
-  instance_type = var.kubeCtlType
-  subnet_id     = var.pvtSubAIds[1]
+  subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
   key_name      = var.keyName
 
   vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
@@ -333,37 +307,19 @@ resource "aws_instance" "haproxy1" {
   #             EOF
 
   tags = {
-    Name = "haproxy${count.index + 1}"
-    role = "kubecluster"
-    feat = "haproxy"
+    Name = "${var.naming}-haproxy${count.index + 1}"
+    role = "${var.naming}-kubecluster"
+    feat = "${var.naming}-haproxy"
   }
 }
 
-resource "aws_instance" "haproxy2" {
-  count         = 1
-  ami           = var.kubeCtlAmi
-  instance_type = var.kubeCtlType
-  subnet_id     = var.pvtSubCIds[1]
-  key_name      = var.keyName
-
-  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
-
-  root_block_device {
-    volume_size = var.kubeCtlVolume
-  }
-  tags = {
-    Name = "haproxy${count.index + 2}"
-    role = "kubecluster"
-    feat = "haproxy"
-  }
-}
 
 
 resource "aws_instance" "kube_worker" {
   count         = var.kubeNodCount
   ami           = var.kubeNodAmi
   instance_type = var.kubeNodType
-  subnet_id     = var.pvtSubAIds[2]
+  subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
   key_name      = var.keyName
 
   vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
@@ -373,7 +329,7 @@ resource "aws_instance" "kube_worker" {
   }
 
   # provisioner "local_exec" {
-  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.service-tg.arn} --targets Id=${self.id}"
+  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.${var.naming}-service-tg.arn} --targets Id=${self.id}"
   # }
 
 
@@ -384,38 +340,8 @@ resource "aws_instance" "kube_worker" {
   #             EOF
 
   tags = {
-    Name = "kube-worker${count.index + 1}"
-    role = "kubecluster"
-    feat = "worker"
-  }
-}
-resource "aws_instance" "kube_worker_c" {
-  count         = var.kubeNodCount
-  ami           = var.kubeNodAmi
-  instance_type = var.kubeNodType
-  subnet_id     = var.pvtSubCIds[2]
-  key_name      = var.keyName
-
-  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
-
-  root_block_device {
-    volume_size = var.kubeNodVolume
-  }
-
-  # provisioner "local_exec" {
-  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.service-tg.arn} --targets Id=${self.id}"
-  # }
-
-
-  # user_data = <<EOF
-  #             #!/bin/bash
-  #             sudo hostnamectl set-hostname kube-worker${count.index + 3} #테라폼 변수를 userdata에서 못읽어서 작동안함
-  #             sudo echo "127.0.1.1 kube-worker${count.index + 3}" | sudo tee -a /etc/hosts
-  #             EOF
-
-  tags = {
-    Name = "kube-worker${count.index + 3}"
-    role = "kubecluster"
-    feat = "worker"
+    Name = "${var.naming}-kube-worker${count.index + 1}"
+    role = "${var.naming}-kubecluster"
+    feat = "${var.naming}-worker"
   }
 }
