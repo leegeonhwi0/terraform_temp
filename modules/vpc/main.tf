@@ -47,7 +47,7 @@ resource "aws_subnet" "pri_app_c" {
   cidr_block        = cidrsubnet(var.cidrBlock, 9, 3)
   availability_zone = local.az-2
   tags = {
-    Name = "${var.naming}-pri-app-sub-c}"
+    Name = "${var.naming}-pri-app-sub-c"
   }
 }
 
@@ -67,7 +67,7 @@ resource "aws_subnet" "pri_db_c" {
   cidr_block        = cidrsubnet(var.cidrBlock, 9, 5)
   availability_zone = local.az-2
   tags = {
-    Name = "${var.naming}-pri-db-sub-c}"
+    Name = "${var.naming}-pri-db-sub-c"
   }
 }
 

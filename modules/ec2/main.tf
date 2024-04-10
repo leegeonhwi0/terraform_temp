@@ -129,13 +129,6 @@ resource "aws_security_group" "kube_cluster_sg" {
     cidr_blocks = [var.cidrBlock]
   }
 
-  ingress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -265,14 +258,7 @@ resource "aws_instance" "kube_controller" {
   # }
 
 
-  user_data = <<-EOF
-              #!/bin/bash -x
-              sudo yum install ansible -y
-              ansible --version
-              sudo yum install python3-pip -y
-              sudo pip3 install boto3
-              sudo pip3 install --upgrade awscli
-              EOF
+  user_data = file("${path.module}/user_data/user_data_kubecontroller.sh")
 
   tags = {
     Name = "kube-controller${count.index + 1}"
