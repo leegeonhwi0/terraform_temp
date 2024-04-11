@@ -16,13 +16,13 @@ provider "aws" {
 # VPC Count
 module "main_vpc" {
   source    = "./modules/vpc"
-  naming    = "gymfit_test"
+  naming    = "gymfit-test"
   cidrBlock = "10.0.0.0/16"
 }
 # sg module set
 module "sg" {
   source                        = "./modules/sg"
-  naming                        = "gymfit_test"
+  naming                        = "gymfit-test"
   cidrBlock                     = "10.0.0.0/16"
   kube_controller_ingress_rules = var.kube_controller_ingress_rules
   kube_worker_ingress_rules     = var.kube_worker_ingress_rules
@@ -33,7 +33,7 @@ module "sg" {
 # Instance
 module "instance" {
   source              = "./modules/ec2"
-  naming              = "gymfit_test"
+  naming              = "gymfit-test"
   myIp                = "222.118.135.114/32"
   defVpcId            = module.main_vpc.def_vpc_id
   cidrBlock           = "10.0.0.0/16"
