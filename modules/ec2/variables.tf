@@ -45,6 +45,11 @@ variable "kubeCtlVolume" {
   type = number
 }
 
+variable "kubeCtlCount"{
+  type = number
+  default = 3
+}
+
 variable "kubeNodType" {
   type = string
 }
@@ -73,12 +78,18 @@ variable "kubeNodAmi" {
   type = string
 }
 
-variable "kubeclusterSgIds" {
+variable "kubeControllerSGIds" {
   type = string
 }
-variable "albSgIds" {
+
+variable "kubeWorkerSGIds" {
   type = string
 }
-variable "bastionSgIds" {
+
+variable "albSGIds" {
+  type = string
+}
+
+variable "bastionSGIds" {
   type = string
 }

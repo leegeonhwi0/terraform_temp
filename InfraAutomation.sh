@@ -91,10 +91,10 @@ cat <<EOF >> main.tf
 # sg module set
 module "sg" {
   source    = "./modules/sg"
-  naming    = "$keyName"
+  naming    = "$prjt"
   cidrBlock = "$vpcCidr"
   defVpcId      = module.main_vpc.def_vpc_id
-  myIp = $myIp
+  myIp = "$myIp/32"
 }
 EOF
 
@@ -143,14 +143,16 @@ aws ec2 describe-images \
 --output text >> ami.info
 srvAmi=$(sed -n "2p" "ami.info")
 
-echo "앤서블 서버 사양 선택"
+
+srvCount=3
+echo "컨트롤플레인 사양 선택"
 echo "===================="
 cat -n "instance.info"
 echo "===================="
 read -p "번호를 선택해주세요: " srvTypeSelect
 srvType=$(sed -n "${srvTypeSelect}p" "instance.info")
-read -p "앤서블 서버 볼륨 크기[최소:20,최대:30]: " srvVolume
-
+read -p "컨트롤플레인 볼륨 크기[최소:20,최대:30]: " srvVolume
+read -p "컨트롤 플레인 갯수:[최소:3] " srvCount
 #Ansible-Node
 echo "앤서블 노드 AMI 선택"
 echo "=============================="
@@ -207,8 +209,8 @@ cat <<EOF >> main.tf
 # Instance
 module "instance" {
   source        = "./modules/ec2"
-  naming        = "gymfit-test"
-  myIp          = "$myIp"
+  naming        = "$prjt"
+  myIp          = "$myIp/32"
   defVpcId      = module.main_vpc.def_vpc_id
   cidrBlock     = "$vpcCidr"
   pubSubIds     = module.main_vpc.public_sub_ids
@@ -216,13 +218,14 @@ module "instance" {
   pvtAppSubCIds = module.main_vpc.pri_app_sub_c_ids
   pvtDBSubAIds  = module.main_vpc.pri_db_sub_a_ids
   pvtDBSubCIds  = module.main_vpc.pri_db_sub_c_ids
-  kubeclusterSgIds = moudle.sg.kubecluster_sg_id
+  kubeclusterSgIds = module.sg.kubecluster_sg_id
   albSgIds      = module.sg.alb_sg_id
   bastionSgIds  = module.sg.bastion_sg_id
   bastionAmi    = "$bAmi"
   kubeCtlAmi    = "$srvAmi"
   kubeCtlType   = "$srvType"
   kubeCtlVolume = $srvVolume
+  kubeCtlCount  = $srvCount
   kubeNodAmi    = "$nodAmi"
   kubeNodType   = "$nodType"
   kubeNodVolume = $nodVolume

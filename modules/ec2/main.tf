@@ -39,7 +39,7 @@ resource "aws_lb" "srv_alb" {
   name               = "${var.naming}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [var.albSgIds]
+  security_groups    = [var.albSGIds]
   subnets            = var.pubSubIds
 }
 
@@ -86,7 +86,7 @@ resource "aws_instance" "bastion_host" {
   instance_type   = "t3.micro"
   subnet_id       = var.pubSubIds[count.index]
   key_name        = var.keyName
-  security_groups = [var.bastionSgIds]
+  security_groups = [var.bastionSGIds]
 
   associate_public_ip_address = true
 
@@ -97,13 +97,13 @@ resource "aws_instance" "bastion_host" {
 
 
 resource "aws_instance" "kube_controller" {
-  count         = 3
+  count         = var.kubeCtlCount
   ami           = var.kubeCtlAmi
   instance_type = var.kubeCtlType
   subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
   key_name      = var.keyName
 
-  vpc_security_group_ids = [var.kubeclusterSgIds]
+  vpc_security_group_ids = [var.kubeControllerSGIds]
 
   root_block_device {
     volume_size = var.kubeCtlVolume
@@ -117,21 +117,21 @@ resource "aws_instance" "kube_controller" {
   user_data = file("${path.module}/user_data/user_data_kubecontroller.sh")
 
   tags = {
-    Name = "kube-controller${count.index + 1}"
-    role = "kubecluster"
-    feat = "controller"
+    Name = "${var.naming}-kube-controller${count.index + 1}"
+    role = "${var.naming}-kubecluster"
+    feat = "${var.naming}-controller"
   }
 }
 
 
 resource "aws_instance" "haproxy" {
-  count         = 2
+  count         = length(var.pubSubIds)
   ami           = var.kubeCtlAmi
   instance_type = var.kubeCtlType
   subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
   key_name      = var.keyName
 
-  vpc_security_group_ids = [var.kubeclusterSgIds]
+  vpc_security_group_ids = [var.kubeControllerSGIds]
 
   root_block_device {
     volume_size = var.kubeCtlVolume
@@ -158,7 +158,7 @@ resource "aws_instance" "kube_worker" {
   subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
   key_name      = var.keyName
 
-  vpc_security_group_ids = [var.kubeclusterSgIds]
+  vpc_security_group_ids = [var.kubeWorkerSGIds]
 
   root_block_device {
     volume_size = var.kubeNodVolume

@@ -1,5 +1,9 @@
-output "kubecluster_sg_id" {
-  value = aws_security_group.kube_cluster_sg.id
+output "kube_controller_sg_id" {
+  value = aws_security_group.kube_controller_sg.id
+}
+
+output "kube_worker_sg_id" {
+  value = aws_security_group.kube_worker_sg.id
 }
 
 output "bastion_sg_id" {
