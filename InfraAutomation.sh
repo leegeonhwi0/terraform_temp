@@ -93,6 +93,8 @@ module "sg" {
   source    = "./modules/sg"
   naming    = "$prjt"
   cidrBlock = "$vpcCidr"
+  kube_controller_ingress_rules = var.kube_controller_ingress_rules
+  kube_worker_ingress_rules     = var.kube_worker_ingress_rules
   defVpcId      = module.main_vpc.def_vpc_id
   myIp = "$myIp/32"
 }

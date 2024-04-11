@@ -21,11 +21,13 @@ module "main_vpc" {
 }
 # sg module set
 module "sg" {
-  source    = "./modules/sg"
-  naming    = "gymfit_test"
-  cidrBlock = "10.0.0.0/16"
-  defVpcId  = module.main_vpc.def_vpc_id
-  myIp      = "222.118.135.114/32"
+  source                        = "./modules/sg"
+  naming                        = "gymfit_test"
+  cidrBlock                     = "10.0.0.0/16"
+  kube_controller_ingress_rules = var.kube_controller_ingress_rules
+  kube_worker_ingress_rules     = var.kube_worker_ingress_rules
+  defVpcId                      = module.main_vpc.def_vpc_id
+  myIp                          = "222.118.135.114/32"
 }
 
 # Instance
