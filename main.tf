@@ -18,7 +18,15 @@ module "main_vpc" {
   source    = "./modules/vpc"
   naming    = "gymfit-test"
   cidrBlock = "10.0.0.0/16"
-  tier      = 3
+}
+
+# sg module set
+module "sg" {
+  source    = "./modules/sg"
+  naming    = "gymfit-test"
+  cidrBlock = "10.0.0.0/16"
+  defVpcId      = module.main_vpc.def_vpc_id
+  myIp = "222.118.135.114/32"
 }
 
 # Instance
@@ -33,6 +41,9 @@ module "instance" {
   pvtAppSubCIds = module.main_vpc.pri_app_sub_c_ids
   pvtDBSubAIds  = module.main_vpc.pri_db_sub_a_ids
   pvtDBSubCIds  = module.main_vpc.pri_db_sub_c_ids
+  kubeclusterSgIds = module.sg.kubecluster_sg_id
+  albSgIds      = module.sg.alb_sg_id
+  bastionSgIds  = module.sg.bastion_sg_id
   bastionAmi    = "ami-0bc47a3406a8143ba"
   kubeCtlAmi    = "ami-0bc47a3406a8143ba"
   kubeCtlType   = "t3.medium"

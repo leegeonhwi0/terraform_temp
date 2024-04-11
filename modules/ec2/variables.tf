@@ -72,3 +72,13 @@ variable "kubeCtlAmi" {
 variable "kubeNodAmi" {
   type = string
 }
+
+variable "kubeclusterSgIds" {
+  type = string
+}
+variable "albSgIds" {
+  type = string
+}
+variable "bastionSgIds" {
+  type = string
+}

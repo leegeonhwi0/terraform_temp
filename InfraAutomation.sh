@@ -65,9 +65,6 @@ if [ -n "$vpcCidrInput" ];then
 	vpcCidr="$vpcCidrInput"
 fi
 
-#서브넷 개수 설정
-read -p "아키텍쳐 티어 설정[1/2/3]: " tier
-
 cat <<EOF >> main.tf
 
 # VPC Count
@@ -75,7 +72,6 @@ module "main_vpc" {
   source     = "./modules/vpc"
   naming     = "$prjt"
   cidrBlock = "$vpcCidr"
-  tier       = $tier
 }
 EOF
 
@@ -90,6 +86,17 @@ elif [ $sgAuto == "n" ];then
 	myIp=$inputIp
 fi
 
+
+cat <<EOF >> main.tf
+# sg module set
+module "sg" {
+  source    = "./modules/sg"
+  naming    = "$keyName"
+  cidrBlock = "$vpcCidr"
+  defVpcId      = module.main_vpc.def_vpc_id
+  myIp = $myIp
+}
+EOF
 
 #키페어 생성
 echo "==========키페어 생성=========="
@@ -200,24 +207,27 @@ cat <<EOF >> main.tf
 # Instance
 module "instance" {
   source        = "./modules/ec2"
-  naming        = "gymfit_test"
-  myIp          = "222.118.135.114/32"
+  naming        = "gymfit-test"
+  myIp          = "$myIp"
   defVpcId      = module.main_vpc.def_vpc_id
-  cidrBlock     = "10.0.0.0/16"
+  cidrBlock     = "$vpcCidr"
   pubSubIds     = module.main_vpc.public_sub_ids
   pvtAppSubAIds = module.main_vpc.pri_app_sub_a_ids
   pvtAppSubCIds = module.main_vpc.pri_app_sub_c_ids
   pvtDBSubAIds  = module.main_vpc.pri_db_sub_a_ids
   pvtDBSubCIds  = module.main_vpc.pri_db_sub_c_ids
-  bastionAmi    = "ami-0bc47a3406a8143ba"
-  kubeCtlAmi    = "ami-0bc47a3406a8143ba"
-  kubeCtlType   = "t3.medium"
-  kubeCtlVolume = 20
-  kubeNodAmi    = "ami-0bc47a3406a8143ba"
-  kubeNodType   = "t3.medium"
-  kubeNodVolume = 20
-  kubeNodCount  = 2
-  keyName       = "gymfit_test-ec2"
+  kubeclusterSgIds = moudle.sg.kubecluster_sg_id
+  albSgIds      = module.sg.alb_sg_id
+  bastionSgIds  = module.sg.bastion_sg_id
+  bastionAmi    = "$bAmi"
+  kubeCtlAmi    = "$srvAmi"
+  kubeCtlType   = "$srvType"
+  kubeCtlVolume = $srvVolume
+  kubeNodAmi    = "$nodAmi"
+  kubeNodType   = "$nodType"
+  kubeNodVolume = $nodVolume
+  kubeNodCount  = $nodCount
+  keyName       = "$keyName"
 }
 
 # Output
@@ -246,7 +256,6 @@ echo "가용영역1: ${azs1}"
 echo "가용영역2: ${azs2}"
 echo "프로젝트명: ${prjt}"
 echo "VPC_대역: ${vpcCidr}"
-echo "아키텍처_티어: ${tier}"
 echo "SSH_OPEN_IP: ${myIp}"
 echo "BASTION_AMI: ${bAmi}"
 echo "ANS_SRV_AMI: ${srvAmi}"

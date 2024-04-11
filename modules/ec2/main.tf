@@ -1,147 +1,3 @@
-# Security Group
-resource "aws_security_group" "bastion_sg" {
-  name   = "${var.naming}_bastion_sg"
-  vpc_id = var.defVpcId
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.myIp]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.naming}_bastion_sg"
-  }
-}
-
-resource "aws_security_group" "alb_sg" {
-  name   = "${var.naming}_alb_sg"
-  vpc_id = var.defVpcId
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.naming}_alb_sg"
-  }
-}
-resource "aws_security_group" "kube_cluster_sg" {
-  name   = "${var.naming}_ans_srv_sg"
-  vpc_id = var.defVpcId
-
-  ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = [aws_security_group.bastion_sg.id]
-  }
-
-  ingress {
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
-  }
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-
-  ingress {
-    from_port   = 6443
-    to_port     = 6443
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-
-  ingress {
-    from_port   = 2379
-    to_port     = 2380
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-
-  ingress {
-    from_port   = 10250
-    to_port     = 10250
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-
-  ingress {
-    from_port   = 10252
-    to_port     = 10252
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-
-  ingress {
-    from_port   = 10255
-    to_port     = 10255
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-  ingress {
-    from_port   = 10257
-    to_port     = 10257
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-  ingress {
-    from_port   = 10259
-    to_port     = 10259
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-
-  ingress {
-    from_port   = 30000
-    to_port     = 32767
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.cidrBlock]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.naming}_kube_cluster_sg"
-  }
-}
-
-
 # TargetGroup
 resource "aws_lb_target_group" "service_tg" {
   name     = "${var.naming}-service-tg"
@@ -183,7 +39,7 @@ resource "aws_lb" "srv_alb" {
   name               = "${var.naming}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg.id]
+  security_groups    = [var.albSgIds]
   subnets            = var.pubSubIds
 }
 
@@ -230,7 +86,7 @@ resource "aws_instance" "bastion_host" {
   instance_type   = "t3.micro"
   subnet_id       = var.pubSubIds[count.index]
   key_name        = var.keyName
-  security_groups = [aws_security_group.bastion_sg.id]
+  security_groups = [var.bastionSgIds]
 
   associate_public_ip_address = true
 
@@ -247,7 +103,7 @@ resource "aws_instance" "kube_controller" {
   subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
   key_name      = var.keyName
 
-  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
+  vpc_security_group_ids = [var.kubeclusterSgIds]
 
   root_block_device {
     volume_size = var.kubeCtlVolume
@@ -275,7 +131,7 @@ resource "aws_instance" "haproxy" {
   subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
   key_name      = var.keyName
 
-  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
+  vpc_security_group_ids = [var.kubeclusterSgIds]
 
   root_block_device {
     volume_size = var.kubeCtlVolume
@@ -284,13 +140,7 @@ resource "aws_instance" "haproxy" {
   # provisioner "local_exec" {
   #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.jenkins-tg.arn} --targets Id=${self.id}"
   # }
-
-
-  # user_data = <<EOF
-  #             #!/bin/bash
-  #             sudo hostnamectl set-hostname haproxy${count.index +1}#테라폼 변수를 userdata에서 못읽어서 작동안함
-  #             sudo echo "127.0.1.1 haproxy${count.index +1}" | sudo tee -a /etc/hosts              
-  #             EOF
+  user_data = file("${path.module}/user_data/user_data_haproxy.sh")
 
   tags = {
     Name = "${var.naming}-haproxy${count.index + 1}"
@@ -308,7 +158,7 @@ resource "aws_instance" "kube_worker" {
   subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
   key_name      = var.keyName
 
-  vpc_security_group_ids = [aws_security_group.kube_cluster_sg.id]
+  vpc_security_group_ids = [var.kubeclusterSgIds]
 
   root_block_device {
     volume_size = var.kubeNodVolume
@@ -317,13 +167,6 @@ resource "aws_instance" "kube_worker" {
   # provisioner "local_exec" {
   #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.${var.naming}-service-tg.arn} --targets Id=${self.id}"
   # }
-
-
-  # user_data = <<EOF
-  #             #!/bin/bash
-  #             sudo hostnamectl set-hostname kube-worker${count.index + 1}#테라폼 변수를 userdata에서 못읽어서 작동안함
-  #             sudo echo "127.0.1.1 kube-worker${count.index + 1}" | sudo tee -a /etc/hosts
-  #             EOF
 
   tags = {
     Name = "${var.naming}-kube-worker${count.index + 1}"

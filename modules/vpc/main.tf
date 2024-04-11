@@ -32,7 +32,6 @@ resource "aws_subnet" "pub_c" {
 
 # Create Private Subnet
 resource "aws_subnet" "pri_app_a" {
-  #  count             = var.tier
   vpc_id            = aws_vpc.def_vpc.id
   cidr_block        = cidrsubnet(var.cidrBlock, 9, 2)
   availability_zone = local.az-1
@@ -42,7 +41,6 @@ resource "aws_subnet" "pri_app_a" {
 }
 
 resource "aws_subnet" "pri_app_c" {
-  #  count             = var.tier
   vpc_id            = aws_vpc.def_vpc.id
   cidr_block        = cidrsubnet(var.cidrBlock, 9, 3)
   availability_zone = local.az-2
@@ -52,7 +50,6 @@ resource "aws_subnet" "pri_app_c" {
 }
 
 resource "aws_subnet" "pri_db_a" {
-  #  count             = var.tier
   vpc_id            = aws_vpc.def_vpc.id
   cidr_block        = cidrsubnet(var.cidrBlock, 9, 4)
   availability_zone = local.az-1
@@ -62,7 +59,6 @@ resource "aws_subnet" "pri_db_a" {
 }
 
 resource "aws_subnet" "pri_db_c" {
-  #  count             = var.tier
   vpc_id            = aws_vpc.def_vpc.id
   cidr_block        = cidrsubnet(var.cidrBlock, 9, 5)
   availability_zone = local.az-2
@@ -138,28 +134,24 @@ resource "aws_route_table_association" "public_route_table_association_c" {
 
 # Private app Route Table Association A
 resource "aws_route_table_association" "pri_association_a" {
-  #  count          = var.tier
   subnet_id      = aws_subnet.pri_app_a.id
   route_table_id = aws_route_table.pri_app_rtb_a.id
 }
 
 # Private app Route Table Association C
 resource "aws_route_table_association" "pri_association_c" {
-  #  count          = var.tier
   subnet_id      = aws_subnet.pri_app_c.id
   route_table_id = aws_route_table.pri_app_rtb_c.id
 }
 
 # Private app Route Table Association A
 resource "aws_route_table_association" "pri_db_association_a" {
-  #  count          = var.tier
   subnet_id      = aws_subnet.pri_db_a.id
   route_table_id = aws_route_table.pri_db_rtb_a.id
 }
 
 # Private app Route Table Association C
 resource "aws_route_table_association" "pri_db_association_c" {
-  #  count          = var.tier
   subnet_id      = aws_subnet.pri_db_c.id
   route_table_id = aws_route_table.pri_db_rtb_c.id
 }
