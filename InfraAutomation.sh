@@ -219,9 +219,9 @@ module "instance" {
   pvtDBSubAIds  = module.main_vpc.pri_db_sub_a_ids
   pvtDBSubCIds  = module.main_vpc.pri_db_sub_c_ids
   kubeControllerSGIds = module.sg.kube_controller_sg_id
-  kubeWorkerSGIds = module.sg.kube_worker_sg_id
-  albSgIds      = module.sg.alb_sg_id
-  bastionSgIds  = module.sg.bastion_sg_id
+  kubeWorkerSGIds     = module.sg.kube_worker_sg_id
+  albSGIds            = module.sg.alb_sg_id
+  bastionSGIds        = module.sg.bastion_sg_id
   bastionAmi    = "$bAmi"
   kubeCtlAmi    = "$srvAmi"
   kubeCtlType   = "$srvType"
@@ -232,24 +232,6 @@ module "instance" {
   kubeNodVolume = $nodVolume
   kubeNodCount  = $nodCount
   keyName       = "$keyName"
-}
-
-# Output
-output "bastion-pub-ip" {
-  value = module.instance.bastion_public_ips
-}
-
-output "kube-controller-ip" {
-  value = module.instance.kube_controller_ips
-}
-
-
-output "kube-worker-ip" {
-  value = module.instance.kube_worker_ips
-}
-
-output "haproxy-ip" {
-  value = module.instance.haproxy_ips
 }
 
 EOF
