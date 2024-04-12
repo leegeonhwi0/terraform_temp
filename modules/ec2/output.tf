@@ -19,3 +19,6 @@ output "kube_worker_ips" {
 output "haproxy_ips" {
   value = aws_instance.haproxy[*].private_ip
 }
+output "VPN_host_ips" {
+  value = aws_eip.VPN-eip.public_ip
+}

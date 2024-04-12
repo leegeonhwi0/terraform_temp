@@ -15,3 +15,7 @@ output "kube-worker-ip" {
 output "haproxy-ip" {
   value = module.instance.haproxy_ips
 }
+
+output "VPN-host-ip" {
+  value = module.instance.VPN_host_ips
+}

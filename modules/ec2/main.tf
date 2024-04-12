@@ -103,7 +103,7 @@ resource "aws_instance" "VPN_host" {
   security_groups = [var.bastionSGIds]
   user_data       = file("${path.module}/user_data/user_data_VPN_host.sh")
   tags = {
-    Name = "${var.naming}_VPN_host${count.index + 1}"
+    Name = "${var.naming}_VPN_host"
   }
 }
 
@@ -112,7 +112,7 @@ resource "aws_eip" "VPN-eip" {
   lifecycle {
     create_before_destroy = true
   }
-  instance = aws_instance.VPN-host.id
+  instance = aws_instance.VPN_host.id
 }
 
 resource "aws_instance" "kube_controller" {
