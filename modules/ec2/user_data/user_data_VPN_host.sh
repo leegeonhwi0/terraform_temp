@@ -1,16 +1,18 @@
 #!/bin/bash -x
-sudo su -
+
+# Install LibreSwan
 yum install libreswan -y
-echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
-echo "net.ipv4.conf.all.accept_redirects = 0" >> /etc/sysctl.conf
-echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.conf
-echo "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.conf
-echo "net.ipv4.conf.eth0.send_redirects = 0" >> /etc/sysctl.conf
-echo "net.ipv4.conf.default.accept_redirects = 0" >> /etc/sysctl.conf
-echo "net.ipv4.conf.eth0.accept_redirects = 0" >> /etc/sysctl.conf
-echo "net.ipv4.conf.ip_vti0.rp_filter = 0" >> /etc/sysctl.conf
-echo "net.ipv4.conf.eth0.rp_filter = 0" >> /etc/sysctl.conf
-echo "net.ipv4.conf.default.rp_filter = 0" >> /etc/sysctl.conf
-echo "net.ipv4.conf.all.rp_filter = 0" >> /etc/sysctl.conf
+
+# Enable IP forwarding
+echo "net.ipv4.ip_forward = 1" >>/etc/sysctl.conf
+
+# Disable Reverse Path Filtering
+echo "net.ipv4.conf.default.rp_filter = 0" >>/etc/sysctl.conf
+
+# Disable Accept Source Route
+echo "net.ipv4.conf.default.accept_source_route = 0" >>/etc/sysctl.conf
+
+# Apply sysctl settings
 sysctl -p
+
 service network restart
