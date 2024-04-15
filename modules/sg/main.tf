@@ -26,6 +26,19 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = [var.myIp]
   }
 
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.myIp]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.myIp]
+  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -80,10 +93,10 @@ resource "aws_security_group" "kube_controller_sg" {
 
   dynamic "ingress" {
     for_each = [for s in var.kube_controller_ingress_rules : {
-      from_port = s.from_port
-      to_port   = s.to_port
-      desc      = s.desc
-      cidr_blocks     = [s.cidr_blocks]
+      from_port   = s.from_port
+      to_port     = s.to_port
+      desc        = s.desc
+      cidr_blocks = [s.cidr_blocks]
     }]
     content {
       from_port   = ingress.value.from_port
@@ -93,7 +106,7 @@ resource "aws_security_group" "kube_controller_sg" {
       description = ingress.value.desc
     }
   }
-  
+
   ingress {
     from_port   = "0"
     to_port     = "0"
@@ -134,10 +147,10 @@ resource "aws_security_group" "kube_worker_sg" {
 
   dynamic "ingress" {
     for_each = [for s in var.kube_worker_ingress_rules : {
-      from_port = s.from_port
-      to_port   = s.to_port
-      desc      = s.desc
-      cidr_blocks     = [s.cidr_blocks]
+      from_port   = s.from_port
+      to_port     = s.to_port
+      desc        = s.desc
+      cidr_blocks = [s.cidr_blocks]
     }]
     content {
       from_port   = ingress.value.from_port
@@ -147,7 +160,7 @@ resource "aws_security_group" "kube_worker_sg" {
       description = ingress.value.desc
     }
   }
-  
+
   ingress {
     from_port   = "0"
     to_port     = "0"
@@ -168,3 +181,42 @@ resource "aws_security_group" "kube_worker_sg" {
   }
 }
 
+resource "aws_security_group" "db_mysql_sg" {
+  name        = "${var.naming}-mysql-sg"
+  description = "Security group for MySQL instances"
+
+  vpc_id = aws_vpc.defVpcId
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = "0"
+    to_port     = "0"
+    protocol    = "-1"
+    self        = true
+    description = "Self Refer"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.naming}-db-mysql-sg"
+  }
+}

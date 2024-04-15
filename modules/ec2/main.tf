@@ -193,3 +193,20 @@ resource "aws_instance" "kube_worker" {
     feat = "${var.naming}-worker"
   }
 }
+
+resource "aws_instance" "db" {
+  count           = length(var.pubSubIds)
+  ami             = var.kubeNodAmi
+  instance_type   = var.kubeNodType
+  key_name        = var.keyName
+  subnet_id       = count.index % 2 == 0 ? var.pvtDBSubCIds[0] : var.pvtDBSubCIds[1]
+  security_groups = [var.dbMysqlSGIds]
+
+  root_block_device {
+    volume_size = var.kubeNodVolume
+  }
+
+  tags = {
+    Name = "${var.naming}-db-${count.index % 2 == 0 ? "Primary" : "Secondary"}"
+  }
+}

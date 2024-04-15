@@ -46,6 +46,7 @@ module "instance" {
   kubeWorkerSGIds     = module.sg.kube_worker_sg_id
   albSGIds            = module.sg.alb_sg_id
   bastionSGIds        = module.sg.bastion_sg_id
+  dbMysqlSGIds        = module.sg.db_mysql_sg_id
   bastionAmi          = "ami-0bc47a3406a8143ba"
   kubeCtlAmi          = "ami-0bc47a3406a8143ba"
   kubeCtlType         = "t3.medium"
