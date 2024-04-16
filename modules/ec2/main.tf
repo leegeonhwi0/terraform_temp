@@ -90,6 +90,8 @@ resource "aws_instance" "bastion_host" {
 
   associate_public_ip_address = true
 
+  user_data = file("${path.module}/user_data/user_data_bastion_host.sh")
+
   tags = {
     Name = "${var.naming}_bastion_host${count.index + 1}"
   }
@@ -205,6 +207,9 @@ resource "aws_instance" "db" {
   root_block_device {
     volume_size = var.kubeNodVolume
   }
+
+  user_data = file("${path.module}/user_data/user_data_db_mysql.sh")
+
 
   tags = {
     Name = "${var.naming}-db-${count.index % 2 == 0 ? "Primary" : "Secondary"}"
