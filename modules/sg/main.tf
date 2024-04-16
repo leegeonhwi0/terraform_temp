@@ -26,19 +26,6 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = [var.myIp]
   }
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.myIp]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.myIp]
-  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -185,13 +172,13 @@ resource "aws_security_group" "db_mysql_sg" {
   name        = "${var.naming}-mysql-sg"
   description = "Security group for MySQL instances"
 
-  vpc_id = aws_vpc.defVpcId
+  vpc_id = var.defVpcId
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [aws_security_group.bastion_sg.id]
   }
 
   ingress {

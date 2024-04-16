@@ -15,3 +15,7 @@ output "kube-worker-ip" {
 output "haproxy-ip" {
   value = module.instance.haproxy_ips
 }
+
+output "db_ip" {
+  value = module.instance.db_ips
+}
