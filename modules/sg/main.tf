@@ -185,14 +185,14 @@ resource "aws_security_group" "db_mysql_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_security_group.bastion_sg.id]
+    security_groups = [aws_security_group.bastion_sg.id]
   }
 
   ingress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [aws_security_group.kube_worker_sg.id]
+    security_groups = [aws_security_group.kube_worker_sg.id]
   }  
 
   ingress {
