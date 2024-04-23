@@ -1,7 +1,7 @@
 # TargetGroup
 resource "aws_lb_target_group" "service_tg" {
   name     = "${var.naming}-service-tg"
-  port     = 8888
+  port     = 30090
   protocol = "HTTP"
   vpc_id   = var.defVpcId
 
@@ -16,9 +16,26 @@ resource "aws_lb_target_group" "service_tg" {
   }
 }
 
-resource "aws_lb_target_group" "jenkins_tg" {
-  name     = "${var.naming}-jenkins-tg"
-  port     = 8080
+resource "aws_lb_target_group" "argocd_tg" {
+  name     = "${var.naming}-argocd-tg"
+  port     = 30080
+  protocol = "HTTP"
+  vpc_id   = var.defVpcId
+
+  health_check {
+    path                = "/"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
+resource "aws_lb_target_group" "monitoring_tg" {
+  name     = "${var.naming}-monitoring-tg"
+  port     = 30081
   protocol = "HTTP"
 
   vpc_id = var.defVpcId
@@ -55,14 +72,25 @@ resource "aws_lb_listener" "srv_alb_http" {
   }
 }
 
-resource "aws_lb_listener" "jenkins_alb_nodeport" {
+resource "aws_lb_listener" "argocd_alb_nodeport" {
   load_balancer_arn = aws_lb.srv_alb.arn
-  port              = 30080
+  port              = 81
   protocol          = "HTTP"
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.jenkins_tg.arn
+    target_group_arn = aws_lb_target_group.argocd_tg.arn
+  }
+}
+
+resource "aws_lb_listener" "monitoring_alb_nodeport" {
+  load_balancer_arn = aws_lb.srv_alb.arn
+  port              = 82
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.monitoring_tg.arn
   }
 }
 
@@ -97,25 +125,25 @@ resource "aws_instance" "bastion_host" {
   }
 }
 
-resource "aws_instance" "VPN_host" {
-  ami             = var.bastionAmi
-  instance_type   = "t3.micro"
-  subnet_id       = var.pubSubIds[0]
-  key_name        = var.keyName
-  security_groups = [var.bastionSGIds]
-  user_data       = file("${path.module}/user_data/user_data_VPN_host.sh")
-  tags = {
-    Name = "${var.naming}_VPN_host"
-  }
-}
+# resource "aws_instance" "VPN_host" {
+#   ami             = var.bastionAmi
+#   instance_type   = "t3.micro"
+#   subnet_id       = var.pubSubIds[0]
+#   key_name        = var.keyName
+#   security_groups = [var.bastionSGIds]
+#   user_data       = file("${path.module}/user_data/user_data_VPN_host.sh")
+#   tags = {
+#     Name = "${var.naming}_VPN_host"
+#   }
+# }
 
-resource "aws_eip" "VPN-eip" {
-  domain = "vpc"
-  lifecycle {
-    create_before_destroy = true
-  }
-  instance = aws_instance.VPN_host.id
-}
+# resource "aws_eip" "VPN-eip" {
+#   domain = "vpc"
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+#   instance = aws_instance.VPN_host.id
+# }
 
 resource "aws_instance" "kube_controller" {
   count         = var.kubeCtlCount
@@ -130,9 +158,6 @@ resource "aws_instance" "kube_controller" {
     volume_size = var.kubeCtlVolume
   }
 
-  # provisioner "local_exec" {
-  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.jenkins-tg.arn} --targets Id=${self.id}"
-  # }
 
 
   user_data = file("${path.module}/user_data/user_data_kubecontroller.sh")
@@ -158,9 +183,6 @@ resource "aws_instance" "haproxy" {
     volume_size = var.kubeCtlVolume
   }
 
-  # provisioner "local_exec" {
-  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.jenkins-tg.arn} --targets Id=${self.id}"
-  # }
   user_data = file("${path.module}/user_data/user_data_haproxy.sh")
 
   tags = {
@@ -185,9 +207,17 @@ resource "aws_instance" "kube_worker" {
     volume_size = var.kubeNodVolume
   }
 
-  # provisioner "local_exec" {
-  #   command = "aws elbv2 register-targets --target-group-arn ${aws-lb-target-group.${var.naming}-service-tg.arn} --targets Id=${self.id}"
-  # }
+  provisioner "local-exec" {
+    command = "aws elbv2 register-targets --target-group-arn ${aws_lb_target_group.argocd_tg.arn} --targets Id=${self.id}"
+  }
+
+  provisioner "local-exec" {
+    command = "aws elbv2 register-targets --target-group-arn ${aws_lb_target_group.monitoring_tg.arn} --targets Id=${self.id}"
+  }
+
+  provisioner "local-exec" {
+    command = "aws elbv2 register-targets --target-group-arn ${aws_lb_target_group.service_tg.arn} --targets Id=${self.id}"
+  }
 
   tags = {
     Name = "${var.naming}-kube-worker${count.index + 1}"
