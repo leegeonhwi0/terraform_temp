@@ -55,8 +55,16 @@ resource "aws_lb_target_group" "kube_nlb_tg" {
   name        = "${var.naming}-nlb-tg"
   port        = 6443
   protocol    = "TCP"
-  target_type = "instance"
+  target_type = "ip"
   vpc_id      = var.defVpcId
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    interval            = 30
+    protocol            = "HTTPS"
+    path                = "/healthz"
+  }
 }
 
 # LoadBalancer
@@ -69,10 +77,12 @@ resource "aws_lb" "srv_alb" {
 }
 
 resource "aws_lb" "kube_nlb" {
-  name               = "${var.naming}-kube-nlb"
-  internal           = true
-  load_balancer_type = "network"
-  subnets            = [var.pvtAppSubCIds, var.pvtAppSubAIds]
+  name                             = "${var.naming}-kube-nlb"
+  internal                         = true
+  load_balancer_type               = "network"
+  subnets                          = [var.pvtAppSubCIds, var.pvtAppSubAIds]
+  idle_timeout                     = 400
+  enable_cross_zone_load_balancing = true
 }
 
 # LB Listener
@@ -184,10 +194,6 @@ resource "aws_instance" "kube_controller" {
     volume_size = var.kubeCtlVolume
   }
 
-  provisioner "local-exec" {
-    command = "aws elbv2 register-targets --target-group-arn ${aws_lb_target_group.kube_nlb_tg.arn} --targets Id=${self.id}"
-  }
-
   user_data = file("${path.module}/user_data/user_data_kubecontroller.sh")
 
   tags = {
@@ -195,6 +201,12 @@ resource "aws_instance" "kube_controller" {
     role = "${var.naming}-kubecluster"
     feat = "${var.naming}-controller"
   }
+}
+
+resource "aws_lb_target_group_attachment" "tg-attach_controller" {
+  count            = var.kubeCtlCount
+  target_group_arn = aws_lb_target_group.kube_nlb_tg.arn
+  target_id        = element(aws_instance.kube_controller.*.private_ip, count.index)
 }
 
 resource "aws_instance" "kube_worker" {

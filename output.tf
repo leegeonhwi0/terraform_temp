@@ -12,10 +12,10 @@ output "kube-worker-ip" {
   value = module.instance.kube_worker_ips
 }
 
-output "db_ip" {
+output "db-ip" {
   value = module.instance.db_ips
 }
 
-output "kube_nlb_dns" {
+output "kube-nlb-dns" {
   value = module.instance.kube_nlb_dns
 }
