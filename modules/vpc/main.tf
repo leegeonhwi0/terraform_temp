@@ -1,6 +1,6 @@
 locals {
-  az-1 = "ap-south-1a"
-  az-2 = "ap-south-1c"
+  az-1 = "sa-east-1a"
+  az-2 = "sa-east-1c"
 }
 
 # Create VPC
@@ -67,8 +67,18 @@ resource "aws_subnet" "pri_db_c" {
   }
 }
 
+# Create DB Subnet Group 
+resource "aws_db_subnet_group" "my_db_subnet_group" {
+  name = "my-db-subnet-group"
+  subnet_ids = [aws_subnet.pri_db_a.id, aws_subnet.pri_db_c.id]
 
-# Create Internet Gatway
+  tags = {
+    Name = "My DB Subnet Group"
+  }
+}
+
+
+# Create Internet Gateway
 resource "aws_internet_gateway" "def_igw" {
   vpc_id = aws_vpc.def_vpc.id
   tags = {

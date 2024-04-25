@@ -45,8 +45,8 @@ variable "kubeCtlVolume" {
   type = number
 }
 
-variable "kubeCtlCount"{
-  type = number
+variable "kubeCtlCount" {
+  type    = number
   default = 3
 }
 
@@ -91,5 +91,9 @@ variable "albSGIds" {
 }
 
 variable "bastionSGIds" {
+  type = string
+}
+
+variable "dbMysqlSGIds" {
   type = string
 }

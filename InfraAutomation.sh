@@ -128,7 +128,7 @@ aws ec2 describe-images \
 bAmi=$(sed -n "1p" "ami.info")
 
 #Ansible-Server
-echo "앤서블 서버 AMI 선택"
+echo "컨트롤플레인 AMI 선택"
 echo "=============================="
 echo "1.AL2023 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
@@ -156,7 +156,7 @@ srvType=$(sed -n "${srvTypeSelect}p" "instance.info")
 read -p "컨트롤플레인 볼륨 크기[최소:20,최대:30]: " srvVolume
 read -p "컨트롤 플레인 갯수:[최소:3] " srvCount
 #Ansible-Node
-echo "앤서블 노드 AMI 선택"
+echo "워커 노드 AMI 선택"
 echo "=============================="
 echo "1.AL2023 2.Ubuntu-20.04 3.RHEL9"
 echo "=============================="
@@ -173,14 +173,14 @@ aws ec2 describe-images \
 --output text >> ami.info
 nodAmi=$(sed -n "3p" "ami.info")
 
-echo "앤서블 노드 사양 선택"
+echo "워커 노드 사양 선택"
 echo "===================="
 cat -n "instance.info"
 echo "===================="
 read -p "번호를 선택해주세요: " nodTypeSelect
 nodType=$(sed -n "${nodTypeSelect}p" "instance.info")
-read -p "앤서블 노드 볼륨 크기[최소:10,최대:30]: " nodVolume
-read -p "앤서블 노드 수량: " nodCount
+read -p "워커 노드 볼륨 크기[최소:10,최대:30]: " nodVolume
+read -p "워커 노드 수량: " nodCount
 
 # Ansible용 파일 생성
 if [ ${srvUser} == ${nodUser} ];then
@@ -224,6 +224,7 @@ module "instance" {
   kubeWorkerSGIds     = module.sg.kube_worker_sg_id
   albSGIds            = module.sg.alb_sg_id
   bastionSGIds        = module.sg.bastion_sg_id
+  dbMysqlSGIds        = module.sg.db_mysql_sg_id
   bastionAmi    = "$bAmi"
   kubeCtlAmi    = "$srvAmi"
   kubeCtlType   = "$srvType"

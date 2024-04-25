@@ -12,10 +12,12 @@ output "kube-worker-ip" {
   value = module.instance.kube_worker_ips
 }
 
-output "haproxy-ip" {
-  value = module.instance.haproxy_ips
+
+output "db-ip" {
+  value = module.instance.db_ips
 }
 
-output "VPN-host-ip" {
-  value = module.instance.VPN_host_ips
+output "kube-nlb-dns" {
+  value = module.instance.kube_nlb_dns
 }
+
