@@ -10,31 +10,31 @@ terraform {
 
 # Configure AWS Provider
 provider "aws" {
-  region = "ap-south-1"
+  region = "sa-east-1"
 }
 
 # VPC Count
 module "main_vpc" {
   source     = "./modules/vpc"
-  naming     = "gf-man"
+  naming     = "gymfit_test"
   cidrBlock = "10.0.0.0/16"
 }
 # sg module set
 module "sg" {
   source    = "./modules/sg"
-  naming    = "gf-man"
+  naming    = "gymfit_test"
   cidrBlock = "10.0.0.0/16"
   kube_controller_ingress_rules = var.kube_controller_ingress_rules
   kube_worker_ingress_rules     = var.kube_worker_ingress_rules
   defVpcId      = module.main_vpc.def_vpc_id
-  myIp = "61.85.118.29/32"
+  myIp = "118.42.18.181/32"
 }
 
 # Instance
 module "instance" {
   source        = "./modules/ec2"
-  naming        = "gf-man"
-  myIp          = "61.85.118.29/32"
+  naming        = "gymfit_test"
+  myIp          = "118.42.18.181/32"
   defVpcId      = module.main_vpc.def_vpc_id
   cidrBlock     = "10.0.0.0/16"
   pubSubIds     = module.main_vpc.public_sub_ids
@@ -47,15 +47,15 @@ module "instance" {
   albSGIds            = module.sg.alb_sg_id
   bastionSGIds        = module.sg.bastion_sg_id
   dbMysqlSGIds        = module.sg.db_mysql_sg_id
-  bastionAmi    = "ami-0bc47a3406a8143ba"
-  kubeCtlAmi    = "ami-0bc47a3406a8143ba"
+  bastionAmi    = "ami-084dc6d47813a2785"
+  kubeCtlAmi    = "ami-084dc6d47813a2785"
   kubeCtlType   = "t3.medium"
   kubeCtlVolume = 20
   kubeCtlCount  = 3
-  kubeNodAmi    = "ami-0bc47a3406a8143ba"
+  kubeNodAmi    = "ami-084dc6d47813a2785"
   kubeNodType   = "t3.medium"
   kubeNodVolume = 20
   kubeNodCount  = 3
-  keyName       = "gf-man-ec2"
+  keyName       = "gymfit_test-ec2"
 }
 

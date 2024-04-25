@@ -72,7 +72,7 @@ resource "aws_lb" "kube_nlb" {
   name               = "${var.naming}-kube-nlb"
   internal           = true
   load_balancer_type = "network"
-  subnets            = [pvtAppSubCIds, pvtAppSubAIds]
+  subnets            = [var.pvtAppSubCIds, var.pvtAppSubAIds]
 }
 
 # LB Listener

@@ -1,4 +1,3 @@
-
 output "srv_alb_name" {
   value = aws_lb.srv_alb.name
 }
