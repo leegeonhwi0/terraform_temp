@@ -161,25 +161,6 @@ resource "aws_instance" "bastion_host" {
   }
 }
 
-# resource "aws_instance" "VPN_host" {
-#   ami             = var.bastionAmi
-#   instance_type   = "t3.micro"
-#   subnet_id       = var.pubSubIds[0]
-#   key_name        = var.keyName
-#   security_groups = [var.bastionSGIds]
-#   user_data       = file("${path.module}/user_data/user_data_VPN_host.sh")
-#   tags = {
-#     Name = "${var.naming}_VPN_host"
-#   }
-# }
-
-# resource "aws_eip" "VPN-eip" {
-#   domain = "vpc"
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-#   instance = aws_instance.VPN_host.id
-# }
 
 resource "aws_instance" "kube_controller" {
   count         = var.kubeCtlCount

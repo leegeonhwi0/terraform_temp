@@ -66,11 +66,19 @@ kube_worker_ingress_rules = [
   },
 
   {
+    from_port   = 179
+    to_port     = 179
+    cidr_blocks = ["var.cidrBlock"]
+    desc = "allowed for calico netwoking plugin"
+  },
+
+  {
     from_port   = 30000
     to_port     = 32767
     cidr_blocks = ["var.cidrBlock"]
     desc = "nodeport allowd"
   },
+
   {
     from_port   = 22
     to_port     = 22
