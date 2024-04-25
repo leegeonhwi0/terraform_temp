@@ -16,10 +16,10 @@ output "kube_worker_ips" {
   value = aws_instance.kube_worker[*].private_ip
 }
 
-output "haproxy_ips" {
-  value = aws_instance.haproxy[*].private_ip
-}
-
 output "db_ips" {
   value = aws_instance.db[*].private_ip
+}
+
+output "kube_nlb_dns" {
+  value = aws_lb.kube_nlb.dns_name
 }

@@ -19,3 +19,7 @@ output "haproxy-ip" {
 output "db_ip" {
   value = module.instance.db_ips
 }
+
+output "kube_nlb_dns" {
+  value = module.instance.kube_nlb_dns
+}

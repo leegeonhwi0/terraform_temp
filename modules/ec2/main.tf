@@ -51,6 +51,14 @@ resource "aws_lb_target_group" "monitoring_tg" {
   }
 }
 
+resource "aws_lb_target_group" "kube_nlb_tg" {
+  name        = "${var.naming}-nlb-tg"
+  port        = 6443
+  protocol    = "TCP"
+  target_type = "instance"
+  vpc_id      = var.defVpcId
+}
+
 # LoadBalancer
 resource "aws_lb" "srv_alb" {
   name               = "${var.naming}-alb"
@@ -58,6 +66,13 @@ resource "aws_lb" "srv_alb" {
   load_balancer_type = "application"
   security_groups    = [var.albSGIds]
   subnets            = var.pubSubIds
+}
+
+resource "aws_lb" "kube_nlb" {
+  name               = "${var.naming}-kube-nlb"
+  internal           = true
+  load_balancer_type = "network"
+  subnets            = [pvtAppSubCIds, pvtAppSubAIds]
 }
 
 # LB Listener
@@ -91,6 +106,17 @@ resource "aws_lb_listener" "monitoring_alb_nodeport" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.monitoring_tg.arn
+  }
+}
+
+resource "aws_lb_listener" "kube_api" {
+  load_balancer_arn = aws_lb.kube_nlb.arn
+  port              = "6443"
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.kube_nlb_tg.arn
   }
 }
 
@@ -158,7 +184,9 @@ resource "aws_instance" "kube_controller" {
     volume_size = var.kubeCtlVolume
   }
 
-
+  provisioner "local-exec" {
+    command = "aws elbv2 register-targets --target-group-arn ${aws_lb_target_group.kube_nlb_tg.arn} --targets Id=${self.id}"
+  }
 
   user_data = file("${path.module}/user_data/user_data_kubecontroller.sh")
 
@@ -168,31 +196,6 @@ resource "aws_instance" "kube_controller" {
     feat = "${var.naming}-controller"
   }
 }
-
-
-resource "aws_instance" "haproxy" {
-  count         = length(var.pubSubIds)
-  ami           = var.kubeCtlAmi
-  instance_type = var.kubeCtlType
-  subnet_id     = count.index % 2 == 0 ? var.pvtAppSubAIds : var.pvtAppSubCIds
-  key_name      = var.keyName
-
-  vpc_security_group_ids = [var.kubeControllerSGIds]
-
-  root_block_device {
-    volume_size = var.kubeCtlVolume
-  }
-
-  user_data = file("${path.module}/user_data/user_data_haproxy.sh")
-
-  tags = {
-    Name = "${var.naming}-haproxy${count.index + 1}"
-    role = "${var.naming}-kubecluster"
-    feat = "${var.naming}-haproxy"
-  }
-}
-
-
 
 resource "aws_instance" "kube_worker" {
   count         = var.kubeNodCount
