@@ -16,39 +16,27 @@ provider "aws" {
 # VPC Count
 module "main_vpc" {
   source     = "./modules/vpc"
-  naming     = "gf-dev"
-  cidrBlock = "10.0.0.0/16"
+  naming     = "gf-prd"
+  cidrBlock = "10.0.[10[C[D.0.0/16"
 }
 # sg module set
 module "sg" {
   source    = "./modules/sg"
-  naming    = "gf-dev"
-  cidrBlock = "10.0.0.0/16"
+  naming    = "gf-prd"
+  cidrBlock = "10.0.[10[C[D.0.0/16"
   kube_controller_ingress_rules = var.kube_controller_ingress_rules
   kube_worker_ingress_rules     = var.kube_worker_ingress_rules
-  defVpcId                      = module.main_vpc.def_vpc_id
-  myIp                          = "118.42.18.181/32"
   defVpcId      = module.main_vpc.def_vpc_id
   myIp = "61.85.118.29/32"
 }
 
 # Instance
 module "instance" {
-  source              = "./modules/ec2"
-  naming              = "gymfit-test"
-  myIp                = "118.42.18.181/32"
-  defVpcId            = module.main_vpc.def_vpc_id
-  cidrBlock           = "10.0.0.0/16"
-  pubSubIds           = module.main_vpc.public_sub_ids
-  pvtAppSubAIds       = module.main_vpc.pri_app_sub_a_ids
-  pvtAppSubCIds       = module.main_vpc.pri_app_sub_c_ids
-  pvtDBSubAIds        = module.main_vpc.pri_db_sub_a_ids
-  pvtDBSubCIds        = module.main_vpc.pri_db_sub_c_ids
   source        = "./modules/ec2"
-  naming        = "gf-dev"
+  naming        = "gf-prd"
   myIp          = "61.85.118.29/32"
   defVpcId      = module.main_vpc.def_vpc_id
-  cidrBlock     = "10.0.0.0/16"
+  cidrBlock     = "10.0.[10[C[D.0.0/16"
   pubSubIds     = module.main_vpc.public_sub_ids
   pvtAppSubAIds = module.main_vpc.pri_app_sub_a_ids
   pvtAppSubCIds = module.main_vpc.pri_app_sub_c_ids
@@ -59,25 +47,15 @@ module "instance" {
   albSGIds            = module.sg.alb_sg_id
   bastionSGIds        = module.sg.bastion_sg_id
   dbMysqlSGIds        = module.sg.db_mysql_sg_id
-  bastionAmi          = "ami-084dc6d47813a2785"
-  kubeCtlAmi          = "ami-084dc6d47813a2785"
-  kubeCtlType         = "t3.medium"
-  kubeCtlVolume       = 20
-  kubeCtlCount        = 3
-  kubeNodAmi          = "ami-084dc6d47813a2785"
-  kubeNodType         = "t3.medium"
-  kubeNodVolume       = 20
-  kubeNodCount        = 3
-  keyName             = "gymfit_test-ec2"
-  bastionAmi    = "ami-0bc47a3406a8143ba"
-  kubeCtlAmi    = "ami-0bc47a3406a8143ba"
+  bastionAmi    = "ami-084dc6d47813a2785"
+  kubeCtlAmi    = "ami-084dc6d47813a2785"
   kubeCtlType   = "t3.medium"
   kubeCtlVolume = 20
   kubeCtlCount  = 3
-  kubeNodAmi    = "ami-0bc47a3406a8143ba"
+  kubeNodAmi    = "ami-084dc6d47813a2785"
   kubeNodType   = "t3.medium"
-  kubeNodVolume = 10
+  kubeNodVolume = 20
   kubeNodCount  = 3
-  keyName       = "gf-dev-ec2"
+  keyName       = "gf-prd-ec2"
 }
 

@@ -22,6 +22,3 @@ output "db_ips" {
 output "kube_nlb_dns" {
   value = aws_lb.kube_nlb.dns_name
 }
-output "VPN_host_ips" {
-  value = aws_eip.VPN-eip.public_ip
-}
