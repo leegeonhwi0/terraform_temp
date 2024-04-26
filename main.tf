@@ -6,7 +6,38 @@ terraform {
       version = "5.39.1"
     }
   }
+  backend "s3" {
+    bucket = "gf-prd-tfstate-s3-04261301"
+    key    = "terraform.tfstate"
+    region = "ap-south-1"
+    #    dynamodb_table = "terraform-lock" # s3 bucket을 이용한 협업을 위해 설정 
+  }
 }
+resource "aws_s3_bucket" "tf_backend" {
+  count  = terraform.workspace == "default" ? 1 : 0 # workspace가 default일 때만 실행해라
+  bucket = "gf-prd-tfstate-s3-04261301"
+  # versioning {                   # deprecated된 문법으로 사용이 가능하긴 하나 권장하지 않음, 자체모듈에서 삭제시 업데이트 필요
+  #   enabled = true
+  # }
+  tags = {
+    Name = "gf-prd-tfstate-s3-04261301"
+  }
+}
+
+resource "aws_s3_bucket_acl" "tf_backend_acl" {
+  count  = terraform.workspace == "default" ? 1 : 0 # workspace가 default일 때만 실행해라
+  bucket = aws_s3_bucket.tf_backend[0].id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_ownership_controls" "tf_backend_ownership" {
+  count  = terraform.workspace == "default" ? 1 : 0 # workspace가 default일 때만 실행해라
+  bucket = aws_s3_bucket.tf_backend[0].id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}  
+
 
 # Configure AWS Provider
 provider "aws" {
@@ -17,13 +48,13 @@ provider "aws" {
 module "main_vpc" {
   source     = "./modules/vpc"
   naming     = "gf-prd"
-  cidrBlock = "10.0.[10[C[D.0.0/16"
+  cidrBlock = "10.10.0.0/16"
 }
 # sg module set
 module "sg" {
   source    = "./modules/sg"
   naming    = "gf-prd"
-  cidrBlock = "10.0.[10[C[D.0.0/16"
+  cidrBlock = "10.10.0.0/16"
   kube_controller_ingress_rules = var.kube_controller_ingress_rules
   kube_worker_ingress_rules     = var.kube_worker_ingress_rules
   defVpcId      = module.main_vpc.def_vpc_id
@@ -36,7 +67,7 @@ module "instance" {
   naming        = "gf-prd"
   myIp          = "61.85.118.29/32"
   defVpcId      = module.main_vpc.def_vpc_id
-  cidrBlock     = "10.0.[10[C[D.0.0/16"
+  cidrBlock     = "10.10.0.0/16"
   pubSubIds     = module.main_vpc.public_sub_ids
   pvtAppSubAIds = module.main_vpc.pri_app_sub_a_ids
   pvtAppSubCIds = module.main_vpc.pri_app_sub_c_ids
